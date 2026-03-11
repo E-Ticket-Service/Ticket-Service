@@ -7,6 +7,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -25,5 +27,8 @@ public class Order extends BaseEntity{
     OrderStatus status;
 
     LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    List<OrderItem> orderItems = new ArrayList<>();
 }
 

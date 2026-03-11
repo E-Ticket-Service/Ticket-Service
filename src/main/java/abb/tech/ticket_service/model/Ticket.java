@@ -24,12 +24,12 @@ public class Ticket extends BaseEntity{
 
     Long userId;
 
-    @ManyToOne
-    @JoinColumn(name = "event_session_id", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_session_id")
     EventSession eventSession;
 
-    @ManyToOne
-    @JoinColumn(name = "seat_id", referencedColumnName = "id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seat_id")
     Seat seat;
 
     BigDecimal price;

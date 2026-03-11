@@ -19,8 +19,11 @@ import java.util.List;
 public class Hall extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id", referencedColumnName = "id")
+    @JoinColumn(name = "location_id")
     Location location;
+
+    @OneToMany(mappedBy = "hall", fetch = FetchType.LAZY)
+    List<Seat> seats;
 
     @Column(nullable = false)
     String name;
@@ -29,7 +32,4 @@ public class Hall extends BaseEntity {
     Integer capacity;
 
     Boolean hasSeatMap;
-
-    @OneToMany(mappedBy = "hall")
-    List<Seat> seats;
 }

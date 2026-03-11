@@ -22,4 +22,6 @@ public abstract class BaseEntity {
 
     @Enumerated(EnumType.STRING)
     Status status;
+
+    Long createdBy;
 }

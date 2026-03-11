@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -18,7 +17,7 @@ public class Bucket extends BaseEntity{
 
     Long userId;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "bucket")
+    @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "bucket", fetch = FetchType.LAZY)
     List<BucketItem> items;
 
 }

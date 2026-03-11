@@ -18,8 +18,14 @@ public class BucketItem extends BaseEntity{
     Bucket bucket;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ticket_id")
-    Ticket ticket;
+    @JoinColumn(name = "event_session_id")
+    EventSession eventSession;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seat_id")
+    Seat seat;
 
     boolean selected;
+
+    int count;
 }
