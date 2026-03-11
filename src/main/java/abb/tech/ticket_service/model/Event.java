@@ -38,6 +38,6 @@ public class Event extends BaseEntity{
     @Enumerated(EnumType.STRING)
     EventStatus eventStatus;
 
-    @OneToMany(mappedBy = "event")
+    @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
     List<EventSession> sessions = new ArrayList<>();
 }
