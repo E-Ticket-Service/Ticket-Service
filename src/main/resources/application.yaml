@@ -13,3 +13,10 @@ spring:
         default_schema: tickets_db
     hibernate:
       ddl-auto: update
+
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
+
+

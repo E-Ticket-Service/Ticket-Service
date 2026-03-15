@@ -28,7 +28,7 @@ public class Seat extends BaseEntity {
     SeatType seatType;
 
     @Enumerated(EnumType.STRING)
-    SeatStatus status;
+    SeatStatus seatStatus;
 
     BigDecimal extraPrice;
 }
