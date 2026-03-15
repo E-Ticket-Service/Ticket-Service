@@ -24,7 +24,7 @@ public class Order extends BaseEntity{
     BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
-    OrderStatus status;
+    OrderStatus orderStatus;
 
     LocalDateTime createdAt;
 
