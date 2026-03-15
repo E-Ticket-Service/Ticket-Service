@@ -36,7 +36,7 @@ public class EventServiceImpl implements EventService {
         }
         Event event = eventMapper.toEntity(reqEventDto);
         eventRepository.save(event);
-        log.info("Event successfully created with ID:" + event.getId() + " and " + "name{" + event.getName() + "}");
+        log.info("Event successfully created with ID:" + event.getId() + " and " + "name: {" + event.getName() + "}");
         return eventMapper.toResponse(event);
     }
 
@@ -62,7 +62,8 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional(readOnly = true)
     public List<RespEventDto> getAllEvents() {
-        List<Event> events = eventRepository.findAll();
+        var events = eventRepository.findAll();
+        log.info("All events were found successfully length:" + " " + events.toArray().length);
         return eventMapper.toDoList(events);
     }
 

@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.annotation.Target;
+import java.lang.classfile.TypeAnnotation;
 import java.util.List;
 
 /// Qeyd: User əgər ADMİN rolunda deyilsə sadəcə
 /// öz yaratdığı eventləri görməli
-/// və redaktə/silmə edə bilməlidir
+/// və redaktə/silmə edə bilməlidirl
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
@@ -24,18 +26,20 @@ public class EventController {
 
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public RespEventDto createEvent(@RequestBody ReqEventDto reqEventDto) {
+
+    public RespEventDto createEvent(@Valid @RequestBody ReqEventDto reqEventDto) {
         return eventService.createEvent(reqEventDto);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public RespEventDto updateEvent(@RequestBody ReqEventDto reqEventDto, @Valid @PathVariable Long id) {
+    public RespEventDto updateEvent(@Valid @RequestBody ReqEventDto reqEventDto, @Valid @PathVariable Long id) {
         return eventService.updateEvent(id, reqEventDto);
     }
 
     @GetMapping("/by-id")
     @ResponseStatus(HttpStatus.ACCEPTED)
+
     public RespEventDto getEventById(@RequestParam(value = "id") Long id) {
         return eventService.getEventById(id);
     }
