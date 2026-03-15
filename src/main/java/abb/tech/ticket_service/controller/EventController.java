@@ -3,19 +3,13 @@ package abb.tech.ticket_service.controller;
 import abb.tech.ticket_service.dto.request.ReqEventDto;
 import abb.tech.ticket_service.dto.response.RespEventDto;
 import abb.tech.ticket_service.service.EventService;
-import jakarta.persistence.PrePersist;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.annotation.Target;
-import java.lang.classfile.TypeAnnotation;
 import java.util.List;
 
-/// Qeyd: User əgər ADMİN rolunda deyilsə sadəcə
-/// öz yaratdığı eventləri görməli
-/// və redaktə/silmə edə bilməlidirl
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
