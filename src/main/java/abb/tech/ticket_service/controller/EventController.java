@@ -14,13 +14,14 @@ import java.util.List;
 @RequestMapping("/api/events")
 public class EventController {
 
-    @Autowired
-    private EventService eventService;
+  private final EventService eventService;
 
+    public EventController(EventService eventService) {
+        this.eventService = eventService;
+    }
 
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
-
     public RespEventDto createEvent(@Valid @RequestBody ReqEventDto reqEventDto) {
         return eventService.createEvent(reqEventDto);
     }
