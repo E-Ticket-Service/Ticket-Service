@@ -6,6 +6,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
+@Getter
+@Setter
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
