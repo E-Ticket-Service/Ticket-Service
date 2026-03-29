@@ -23,4 +23,3 @@ public class Bucket extends BaseEntity{
     List<BucketItem> items;
 
 }
-
