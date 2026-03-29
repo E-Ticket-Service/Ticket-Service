@@ -1,0 +1,54 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build project
+        run: mvn clean package -DskipTests
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: docker build -t ticket-service .
+
+      - name: Tag image
+        run: docker tag ticket-service:latest 476114142840.dkr.ecr.us-east-1.amazonaws.com/ticket_service:latest
+
+      - name: Push image
+        run: docker push 476114142840.dkr.ecr.us-east-1.amazonaws.com/ticket_service:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            docker pull 476114142840.dkr.ecr.us-east-1.amazonaws.com/ticket_service:latest
+            docker stop ticket-service || true
+            docker rm ticket-service || true
+            docker run -d -p 8080:8080 --name ticket-service 476114142840.dkr.ecr.us-east-1.amazonaws.com/ticket_service:latest

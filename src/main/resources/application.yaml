@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: ticket-service
+  datasource:
+    url: jdbc:postgresql://localhost:5433/app-db?currentSchema=ticket_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+
+  jpa:
+    properties:
+      hibernate:
+        default_schema: ticket_db
+    hibernate:
+      ddl-auto: update
+
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always
+
+
+server:
+  port: 8082
