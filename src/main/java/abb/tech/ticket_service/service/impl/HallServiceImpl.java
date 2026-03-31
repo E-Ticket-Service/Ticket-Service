@@ -6,7 +6,6 @@ import abb.tech.ticket_service.mapper.HallMapper;
 import abb.tech.ticket_service.model.Hall;
 import abb.tech.ticket_service.repository.HallRepository;
 import abb.tech.ticket_service.service.HallService;
-import abb.tech.ticket_service.service.SectionService;
 import abb.tech.ticket_service.service.VenueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,7 +19,6 @@ public class HallServiceImpl implements HallService {
 
     private final HallRepository hallRepository;
     private final HallMapper hallMapper;
-    private final SectionService sectionService;
     private final VenueService venueService;
 
     @Override

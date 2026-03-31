@@ -6,7 +6,6 @@ import abb.tech.ticket_service.dto.response.VenueResponse;
 import abb.tech.ticket_service.mapper.VenueMapper;
 import abb.tech.ticket_service.model.Venue;
 import abb.tech.ticket_service.repository.VenueRepository;
-import abb.tech.ticket_service.service.HallService;
 import abb.tech.ticket_service.service.VenueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

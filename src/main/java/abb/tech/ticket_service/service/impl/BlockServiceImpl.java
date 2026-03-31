@@ -5,7 +5,6 @@ import abb.tech.ticket_service.mapper.BlockMapper;
 import abb.tech.ticket_service.model.Block;
 import abb.tech.ticket_service.repository.BlockRepository;
 import abb.tech.ticket_service.service.BlockService;
-import abb.tech.ticket_service.service.RowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,6 @@ public class BlockServiceImpl implements BlockService {
 
     private final BlockRepository blockRepository;
     private final BlockMapper blockMapper;
-    private final RowService rowService;
 
     @Override
     public Block getById(Long id){
