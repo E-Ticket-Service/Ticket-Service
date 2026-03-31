@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -21,16 +22,20 @@ public class GatewayHeaderFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String userId = request.getHeader("X-USER-ID");
-        String username = request.getHeader("X-USER-NAME");
-        String authorities = request.getHeader("X-USER-AUTHORITIES");
+        try {
+            var userId = request.getHeader("X-USER-ID");
+            var username = request.getHeader("X-USER-NAME");
+            var authorities = request.getHeader("X-USER-AUTHORITIES");
 
-        if (userId != null && username != null && authorities != null) {
-            List<SimpleGrantedAuthority> authList = Arrays.stream(authorities.split(",")).map(SimpleGrantedAuthority::new).toList();
-            UsernamePasswordAuthenticationToken passwordAuthentication = new UsernamePasswordAuthenticationToken(userId, username, authList);
-            SecurityContextHolder.getContext().setAuthentication(passwordAuthentication);
-
+            if (userId != null && username != null && authorities != null) {
+                List<SimpleGrantedAuthority> authList = Arrays.stream(authorities.split(",")).map(SimpleGrantedAuthority::new).toList();
+                UsernamePasswordAuthenticationToken passwordAuthentication = new UsernamePasswordAuthenticationToken(userId, username, authList);
+                SecurityContextHolder.getContext().setAuthentication(passwordAuthentication);
+            }
+        } catch (AuthenticationException e) {
+            response.sendError(401, "unauthorized");
+            return;
         }
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
 }
