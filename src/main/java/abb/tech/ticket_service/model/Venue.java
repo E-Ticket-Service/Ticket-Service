@@ -13,11 +13,11 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
-@Table(name = "locations")
+@Table(name = "venues")
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-public class Location extends BaseEntity {
+public class Venue extends BaseEntity {
 
     @Column(nullable = false)
     String name;
@@ -30,6 +30,6 @@ public class Location extends BaseEntity {
 
     String description;
 
-    @OneToMany(mappedBy = "location", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "venue", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     List<Hall> halls = new ArrayList<>();
 }
