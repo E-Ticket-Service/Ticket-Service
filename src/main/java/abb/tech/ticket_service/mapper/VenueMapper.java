@@ -11,7 +11,6 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring", uses = {HallMapper.class})
 public interface VenueMapper {
 
-//    @Mapping(target = "halls", ignore = true)
     Venue toEntity(VenueCreationRequest request);
     VenueResponse toResponse(Venue venue);
     void updateVenue(@MappingTarget Venue venue, VenueUpdateRequest request);

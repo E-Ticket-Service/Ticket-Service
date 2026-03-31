@@ -11,7 +11,6 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring", uses = {BlockMapper.class})
 public interface SectionMapper {
 
-//    @Mapping(target = "blocks", ignore = true)
     Section toEntity(SectionCreationRequest request);
     SectionResponse toResponse(Section section);
     void updateSection(@MappingTarget Section section, SectionUpdateRequest request);

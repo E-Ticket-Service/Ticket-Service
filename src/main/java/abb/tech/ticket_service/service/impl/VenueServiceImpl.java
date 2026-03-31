@@ -20,9 +20,8 @@ public class VenueServiceImpl implements VenueService {
 
     private final VenueRepository venueRepository;
     private final VenueMapper venueMapper;
-    private final HallService hallService;
 
-
+    @Override
     public Venue getById(Long id){
         return venueRepository.findById(id)
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND,"Venue not found."));
@@ -39,21 +38,6 @@ public class VenueServiceImpl implements VenueService {
     @Transactional
     public void createVenue(VenueCreationRequest request){
         var venue = venueMapper.toEntity(request);
-        for(var hall: venue.getHalls()){
-            hall.setVenue(venue);
-            for(var section: hall.getSections()){
-                section.setHall(hall);
-                for(var block: section.getBlocks()){
-                    block.setSection(section);
-                    for(var row: block.getRows()){
-                        row.setBlock(block);
-                        for(var seat: row.getSeats()){
-                            seat.setRow(row);
-                        }
-                    }
-                }
-            }
-        }
         venueRepository.save(venue);
     }
 

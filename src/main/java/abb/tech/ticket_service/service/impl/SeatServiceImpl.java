@@ -26,25 +26,6 @@ public class SeatServiceImpl implements SeatService {
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Seat with id: %d not found", id)));
     }
 
-    @Override
-    public void createSeat(SeatCreationRequest request, Row row) {
-        var seat = seatMapper.toEntity(request);
-        seat.setRow(row);
-        seatRepository.save(seat);
-    }
-
-    @Override
-    public void createSeats(List<SeatCreationRequest> requests, Row row){
-        var seats = requests.stream()
-                .map(request -> {
-                    var seat = seatMapper.toEntity(request);
-                    seat.setRow(row);
-                    return seat;
-                })
-                .toList();
-
-        seatRepository.saveAll(seats);
-    }
 
     @Override
     public void updateSeat(Long id, SeatUpdateRequest request){

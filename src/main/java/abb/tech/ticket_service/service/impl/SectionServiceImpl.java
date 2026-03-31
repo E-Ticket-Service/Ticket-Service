@@ -29,19 +29,6 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
-    public void createSections(List<SectionCreationRequest> requests, Hall hall){
-        for(var request: requests){
-            var section = sectionMapper.toEntity(request);
-            section.setHall(hall);
-            sectionRepository.save(section);
-
-            if(request.getBlocks() != null && !request.getBlocks().isEmpty()){
-                blockService.createBlocks(request.getBlocks(), section);
-            }
-        }
-    }
-
-    @Override
     public void updateSection(Long id, SectionUpdateRequest request){
         var section = getById(id);
         sectionMapper.updateSection(section, request);

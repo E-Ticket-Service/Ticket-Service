@@ -4,6 +4,7 @@ import abb.tech.ticket_service.dto.request.VenueCreationRequest;
 import abb.tech.ticket_service.dto.request.VenueUpdateRequest;
 import abb.tech.ticket_service.dto.response.VenueResponse;
 import abb.tech.ticket_service.service.VenueService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class VenueController {
     }
 
     @PostMapping
-    public void createVenue(@RequestBody VenueCreationRequest request){
+    public void createVenue(@RequestBody @Valid VenueCreationRequest request){
         venueService.createVenue(request);
     }
 
