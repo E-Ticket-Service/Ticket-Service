@@ -41,6 +41,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public RespEventDto updateEvent(Long id, ReqEventDto reqEventDto) {
         Event event = eventRepository.findById(id).orElseThrow(() -> new NotFoundException("Event not found with ID:" + " " + id));
         eventMapper.updateEntityFromDto(reqEventDto, event);
