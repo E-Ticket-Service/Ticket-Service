@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface RowService {
 
-    void createRows(List<RowCreationRequest> requests, Block block);
+    void createRow(RowCreationRequest request, Long blockId);
     void updateRow(Long id, RowUpdateRequest request);
     void deleteRow(Long id);
 }

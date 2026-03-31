@@ -11,7 +11,6 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring", uses = {SectionMapper.class})
 public interface HallMapper {
 
-//    @Mapping(target = "sections", ignore = true)
     Hall toEntity(HallCreationRequest request);
     HallResponse toResponse(Hall hall);
     void updateHall(@MappingTarget Hall hall, HallUpdateRequest request);

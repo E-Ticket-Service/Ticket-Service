@@ -34,19 +34,6 @@ public class SeatServiceImpl implements SeatService {
     }
 
     @Override
-    public void createSeats(List<SeatCreationRequest> requests, Row row){
-        var seats = requests.stream()
-                .map(request -> {
-                    var seat = seatMapper.toEntity(request);
-                    seat.setRow(row);
-                    return seat;
-                })
-                .toList();
-
-        seatRepository.saveAll(seats);
-    }
-
-    @Override
     public void updateSeat(Long id, SeatUpdateRequest request){
         var seat = getById(id);
         seatMapper.updateSeat(seat, request);
