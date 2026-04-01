@@ -5,6 +5,8 @@ import abb.tech.ticket_service.dto.request.HallUpdateRequest;
 import abb.tech.ticket_service.service.HallService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,18 +18,22 @@ public class HallController {
 
     private final HallService hallService;
 
-    @PutMapping("/venue/{venueId}")
-    public void createHalls(@Valid @RequestBody HallCreationRequest request, @PathVariable Long venueId){
+    @PostMapping("/venue/{venueId}")
+    public ResponseEntity<Void> createHalls(@Valid @RequestBody HallCreationRequest request,
+                                            @PathVariable Long venueId) {
         hallService.createHall(request, venueId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
-    public void updateHall(@PathVariable Long id, @RequestBody HallUpdateRequest request){
+    public ResponseEntity<Void> updateHall(@PathVariable Long id,
+                                           @RequestBody HallUpdateRequest request) {
         hallService.updateHall(id, request);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public void deleteHall(@PathVariable Long id){
+    public ResponseEntity<Void> deleteHall(@PathVariable Long id) {
         hallService.deleteHall(id);
-    }
-}
+        return ResponseEntity.noContent().build();
+    }}

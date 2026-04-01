@@ -14,7 +14,7 @@ import java.util.List;
 public class RowCreationRequest {
 
     @NotNull(message = "Row number cannot be null")
-    private String rowNumber;
+    private Integer rowNumber;
 
     @Valid
     private List<SeatCreationRequest> seats;

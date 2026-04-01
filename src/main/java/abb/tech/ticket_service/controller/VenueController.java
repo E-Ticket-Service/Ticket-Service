@@ -6,6 +6,8 @@ import abb.tech.ticket_service.dto.response.VenueResponse;
 import abb.tech.ticket_service.service.VenueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,18 +18,22 @@ public class VenueController {
     private final VenueService venueService;
 
     @GetMapping("/{id}")
-    public VenueResponse createVenue(@PathVariable Long id){
-        return venueService.getVenueById(id);
+    public ResponseEntity<VenueResponse> getVenueById(@PathVariable Long id) {
+        VenueResponse response = venueService.getVenueById(id);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public void createVenue(@RequestBody @Valid VenueCreationRequest request){
+    public ResponseEntity<Void> createVenue(@RequestBody @Valid VenueCreationRequest request) {
         venueService.createVenue(request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PutMapping("/{id}")
-    public void updateVenue(@PathVariable Long id, @RequestBody VenueUpdateRequest request){
+    public ResponseEntity<Void> updateVenue(@PathVariable Long id,
+                                            @RequestBody VenueUpdateRequest request) {
         venueService.updateVenue(id, request);
+        return ResponseEntity.ok().build();
     }
 
 }
