@@ -26,6 +26,6 @@ public abstract class BaseEntity {
 
     @Enumerated(EnumType.STRING)
     Status status = Status.ACTIVE;
-
+    @CreatedBy
     Long createdBy;
 }
