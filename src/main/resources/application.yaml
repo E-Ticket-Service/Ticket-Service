@@ -20,3 +20,5 @@ spring:
       include-binding-errors: always
 
 
+server:
+  port: 8082
