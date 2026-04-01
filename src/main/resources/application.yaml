@@ -10,7 +10,7 @@ spring:
   jpa:
     properties:
       hibernate:
-        default_schema: tickets_db
+        default_schema: ticket_db
     hibernate:
       ddl-auto: update
 
