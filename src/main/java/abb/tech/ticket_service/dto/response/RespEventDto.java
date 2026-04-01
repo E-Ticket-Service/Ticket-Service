@@ -2,7 +2,6 @@ package abb.tech.ticket_service.dto.response;
 
 import abb.tech.ticket_service.enums.EventCategory;
 import abb.tech.ticket_service.enums.EventStatus;
-import abb.tech.ticket_service.model.Event;
 
 
 import java.util.List;
