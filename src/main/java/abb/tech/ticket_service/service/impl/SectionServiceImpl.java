@@ -1,0 +1,37 @@
+package abb.tech.ticket_service.service.impl;
+
+import abb.tech.ticket_service.dto.request.SectionUpdateRequest;
+import abb.tech.ticket_service.mapper.SectionMapper;
+import abb.tech.ticket_service.model.Section;
+import abb.tech.ticket_service.repository.SectionRepository;
+import abb.tech.ticket_service.service.SectionService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+@Service
+@RequiredArgsConstructor
+public class SectionServiceImpl implements SectionService {
+
+    private final SectionRepository sectionRepository;
+    private final SectionMapper sectionMapper;
+
+    public Section getById(Long id){
+        return sectionRepository.findById(id)
+                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Section with id: %d not found", id)));
+    }
+
+    @Override
+    public void updateSection(Long id, SectionUpdateRequest request){
+        var section = getById(id);
+        sectionMapper.updateSection(section, request);
+        sectionRepository.save(section);
+    }
+
+    @Override
+    public void deleteSection(Long id){
+        var section = getById(id);
+        sectionRepository.delete(section);
+    }
+}

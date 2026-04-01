@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -19,11 +20,11 @@ import java.util.List;
 public class Hall extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id")
-    Location location;
+    @JoinColumn(name = "venue_id")
+    Venue venue;
 
-    @OneToMany(mappedBy = "hall", fetch = FetchType.LAZY)
-    List<Seat> seats;
+    @OneToMany(mappedBy = "hall", cascade = CascadeType.ALL)
+    List<Section> sections = new ArrayList<>();
 
     @Column(nullable = false)
     String name;

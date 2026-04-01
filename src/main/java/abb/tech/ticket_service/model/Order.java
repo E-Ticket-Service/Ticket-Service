@@ -26,8 +26,6 @@ public class Order extends BaseEntity{
     @Enumerated(EnumType.STRING)
     OrderStatus orderStatus;
 
-    LocalDateTime createdAt;
-
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     List<OrderItem> orderItems = new ArrayList<>();
 }

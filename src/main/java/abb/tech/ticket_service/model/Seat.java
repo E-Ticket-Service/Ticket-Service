@@ -18,17 +18,16 @@ import java.math.BigDecimal;
 public class Seat extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "hall_id", referencedColumnName = "id")
-    Hall hall;
-    String sector;
-    Integer rowNumber;
+    @JoinColumn(name = "row_id")
+    Row row;
+
     Integer seatNumber;
 
     @Enumerated(EnumType.STRING)
     SeatType seatType;
 
     @Enumerated(EnumType.STRING)
-    SeatStatus seatStatus;
+    SeatStatus seatStatus = SeatStatus.AVAILABLE;
 
     BigDecimal extraPrice;
 }
