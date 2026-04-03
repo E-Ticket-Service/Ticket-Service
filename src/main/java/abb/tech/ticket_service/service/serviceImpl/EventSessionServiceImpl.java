@@ -29,6 +29,13 @@ public class EventSessionServiceImpl implements EventSessionService {
 
     @Override
     @Transactional(readOnly = true)
+    public EventSession findById(Long id) {
+        return eventSessionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("EventSession tapılmadı, id: " + id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public RespEventSessionDto getById(Long eventId, Long sessionId) {
         findEventOrThrow(eventId);
         EventSession session = findSessionOrThrow(sessionId, eventId);
