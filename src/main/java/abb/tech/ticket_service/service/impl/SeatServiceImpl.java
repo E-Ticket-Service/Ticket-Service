@@ -17,9 +17,15 @@ public class SeatServiceImpl implements SeatService {
     private final SeatRepository seatRepository;
     private final SeatMapper seatMapper;
 
+    @Override
     public Seat getById(Long id){
         return seatRepository.findById(id)
                 .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Seat with id: %d not found", id)));
+    }
+
+    @Override
+    public Seat save(Seat seat) {
+        return seatRepository.save(seat);
     }
 
 

@@ -24,7 +24,7 @@ public class Order extends BaseEntity{
     BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
-    OrderStatus orderStatus;
+    OrderStatus orderStatus = OrderStatus.IN_PROGRESS;
 
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
     List<OrderItem> orderItems = new ArrayList<>();

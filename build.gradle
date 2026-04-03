@@ -49,6 +49,20 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 
+    // IText
+    implementation 'com.itextpdf:kernel:8.0.2'
+    implementation 'com.itextpdf:io:8.0.2'
+    implementation 'com.itextpdf:layout:8.0.2'
+    implementation 'com.itextpdf:forms:8.0.2'
+    implementation 'com.itextpdf:pdfa:8.0.2'
+    implementation 'com.itextpdf:sign:8.0.2'
+    implementation 'com.itextpdf:barcodes:8.0.2'
+    implementation 'com.itextpdf:font-asian:8.0.2'
+    implementation 'com.itextpdf:hyph:8.0.2'
+
+    // Kafka
+    implementation 'org.springframework.kafka:spring-kafka'
+
 }
 
 tasks.named('test') {
