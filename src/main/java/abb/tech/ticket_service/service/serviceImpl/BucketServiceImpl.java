@@ -11,9 +11,9 @@ import abb.tech.ticket_service.model.EventSession;
 import abb.tech.ticket_service.model.Seat;
 import abb.tech.ticket_service.repository.BucketItemRepository;
 import abb.tech.ticket_service.repository.BucketRepository;
-import abb.tech.ticket_service.repository.EventSessionRepository;
-import abb.tech.ticket_service.repository.SeatRepository;
 import abb.tech.ticket_service.service.BucketService;
+import abb.tech.ticket_service.service.EventSessionService;
+import abb.tech.ticket_service.service.SeatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +27,29 @@ public class BucketServiceImpl implements BucketService {
 
     private final BucketRepository bucketRepository;
     private final BucketItemRepository bucketItemRepository;
-    private final EventSessionRepository eventSessionRepository;
-    private final SeatRepository seatRepository;
+    private final EventSessionService eventSessionService;
+    private final SeatService seatService;
     private final BucketMapper mapper;
+
+    @Override
+    @Transactional(readOnly = true)
+    public Bucket getBucketEntityByUserId(Long userId) {
+        return bucketRepository.findByUserId(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        "Bu user üçün bucket tapılmadı, userId: " + userId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<BucketItem> getSelectedBucketItemsByBucketId(Long bucketId) {
+        return bucketItemRepository.findByBucketIdAndSelectedTrue(bucketId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBucketItem(BucketItem bucketItem) {
+        bucketItemRepository.delete(bucketItem);
+    }
 
     /**
      * userId-yə uyğun bucket varsa mövcud bucket-ə, yoxdursa yeni bucket yaradıb
@@ -45,9 +65,7 @@ public class BucketServiceImpl implements BucketService {
                     return bucketRepository.save(newBucket);
                 });
 
-        EventSession eventSession = eventSessionRepository.findById(request.eventSessionId())
-                .orElseThrow(() -> new NotFoundException(
-                        "EventSession tapılmadı, id: " + request.eventSessionId()));
+        EventSession eventSession = eventSessionService.findById(request.eventSessionId());
 
         Optional<BucketItem> existingItem = bucketItemRepository
                 .findByBucketIdAndEventSessionIdAndSeatId(
@@ -64,9 +82,7 @@ public class BucketServiceImpl implements BucketService {
 
         Seat seat = null;
         if (request.seatId() != null) {
-            seat = seatRepository.findById(request.seatId())
-                    .orElseThrow(() -> new NotFoundException(
-                            "Seat tapılmadı, id: " + request.seatId()));
+            seat = seatService.getById(request.seatId());
         }
 
         BucketItem newItem = new BucketItem();

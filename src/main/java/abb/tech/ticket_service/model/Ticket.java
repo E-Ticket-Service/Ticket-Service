@@ -34,6 +34,10 @@ public class Ticket extends BaseEntity{
 
     BigDecimal price;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    Order order;
+
     @Enumerated(EnumType.STRING)
     TicketStatus ticketStatus;
 

@@ -1,6 +1,5 @@
 package abb.tech.ticket_service.model;
 
-import abb.tech.ticket_service.enums.SeatStatus;
 import abb.tech.ticket_service.enums.SeatType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -25,9 +24,6 @@ public class Seat extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     SeatType seatType;
-
-    @Enumerated(EnumType.STRING)
-    SeatStatus seatStatus = SeatStatus.AVAILABLE;
 
     BigDecimal extraPrice;
 }

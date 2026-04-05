@@ -2,24 +2,15 @@ package abb.tech.ticket_service.mapper;
 
 import abb.tech.ticket_service.dto.response.RespEventSessionDto;
 import abb.tech.ticket_service.model.EventSession;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Component
-public class EventSessionMapper {
+@Mapper(componentModel = "spring")
+public interface EventSessionMapper {
 
-    public RespEventSessionDto toResponse(EventSession session) {
-        return new RespEventSessionDto(
-                session.getId(),
-                session.getEvent() != null ? session.getEvent().getId() : null,
-                session.getEvent() != null ? session.getEvent().getName() : null,
-                session.getHall() != null ? session.getHall().getId() : null,
-                session.getHall() != null ? session.getHall().getName() : null,
-                session.getStartTime(),
-                session.getEndTime(),
-                session.getBasePrice(),
-                session.getAvailableSeats(),
-                session.getCreatedAt(),
-                session.getUpdatedAt()
-        );
-    }
+    @Mapping(target = "eventId", source = "event.id")
+    @Mapping(target = "eventName", source = "event.name")
+    @Mapping(target = "hallId", source = "hall.id")
+    @Mapping(target = "hallName", source = "hall.name")
+    RespEventSessionDto toResponse(EventSession session);
 }
