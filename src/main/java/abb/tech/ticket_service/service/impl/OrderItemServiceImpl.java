@@ -3,8 +3,8 @@ package abb.tech.ticket_service.service.impl;
 import abb.tech.ticket_service.dto.request.OrderItemCreationRequest;
 import abb.tech.ticket_service.enums.SeatStatus;
 import abb.tech.ticket_service.model.*;
-import abb.tech.ticket_service.repository.OrderItemRepository;
 import abb.tech.ticket_service.service.EventSessionService;
+import abb.tech.ticket_service.service.EventSessionSeatService;
 import abb.tech.ticket_service.service.OrderItemService;
 import abb.tech.ticket_service.service.SeatService;
 import lombok.RequiredArgsConstructor;
@@ -18,20 +18,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderItemServiceImpl implements OrderItemService {
 
-    private final OrderItemRepository orderItemRepository;
+    private final abb.tech.ticket_service.repository.OrderItemRepository orderItemRepository;
     private final EventSessionService eventSessionService;
     private final SeatService seatService;
+    private final EventSessionSeatService eventSessionSeatService;
     
     @Override
     @Transactional(readOnly = true)
     public List<OrderItem> findByOrderId(Long orderId) {
         return orderItemRepository.findByOrderId(orderId);
-    }
-
-    @Override
-    @Transactional
-    public OrderItem save(OrderItem orderItem) {
-        return orderItemRepository.save(orderItem);
     }
     
     @Override
@@ -39,15 +34,14 @@ public class OrderItemServiceImpl implements OrderItemService {
     public OrderItem createOrderItem(Order order, OrderItemCreationRequest request) {
         EventSession session = eventSessionService.findById(request.getEventSessionId());
         Seat seat = seatService.getById(request.getSeatId());
+        EventSessionSeat sessionSeat = eventSessionSeatService.findByEventSessionIdAndSeatId(session.getId(), seat.getId());
 
-        checkSeatStatus(seat);
+        checkSeatStatus(sessionSeat);
 
-        seat.setSeatStatus(SeatStatus.RESERVED);
-        seatService.save(seat);
+        sessionSeat.setSeatStatus(SeatStatus.RESERVED);
+        eventSessionSeatService.create(sessionSeat);
 
-        BigDecimal price = calculatePrice(session, seat);
-
-        return saveOrderItem(order, session, seat, price);
+        return saveOrderItem(order, session, seat, sessionSeat.getPrice());
     }
 
     @Override
@@ -55,20 +49,19 @@ public class OrderItemServiceImpl implements OrderItemService {
     public OrderItem createOrderItemFromBucket(Order order, BucketItem bucketItem) {
         EventSession session = bucketItem.getEventSession();
         Seat seat = bucketItem.getSeat();
+        EventSessionSeat sessionSeat = eventSessionSeatService.findByEventSessionIdAndSeatId(session.getId(), seat.getId());
 
-        checkSeatStatus(seat);
+        checkSeatStatus(sessionSeat);
 
-        seat.setSeatStatus(SeatStatus.RESERVED);
-        seatService.save(seat);
+        sessionSeat.setSeatStatus(SeatStatus.RESERVED);
+        eventSessionSeatService.create(sessionSeat);
 
-        BigDecimal price = calculatePrice(session, seat);
-
-        return saveOrderItem(order, session, seat, price);
+        return saveOrderItem(order, session, seat, sessionSeat.getPrice());
     }
 
-    private static void checkSeatStatus(Seat seat) {
-        if (seat.getSeatStatus() != SeatStatus.AVAILABLE) {
-            throw new IllegalStateException("Seat " + seat.getId() + " is not available");
+    private static void checkSeatStatus(EventSessionSeat sessionSeat) {
+        if (sessionSeat.getSeatStatus() != SeatStatus.AVAILABLE) {
+            throw new IllegalStateException("Seat is not available for this session");
         }
     }
 
@@ -80,9 +73,5 @@ public class OrderItemServiceImpl implements OrderItemService {
         orderItem.setPrice(price);
 
         return orderItemRepository.save(orderItem);
-    }
-
-    private BigDecimal calculatePrice(EventSession session, Seat seat) {
-        return session.getBasePrice().add(seat.getExtraPrice() != null ? seat.getExtraPrice() : BigDecimal.ZERO);
     }
 }

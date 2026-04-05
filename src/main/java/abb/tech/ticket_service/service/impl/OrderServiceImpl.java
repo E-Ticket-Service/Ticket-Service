@@ -28,6 +28,7 @@ public class OrderServiceImpl implements OrderService {
     private final BucketService bucketService;
     private final SeatService seatService;
     private final OrderMapper orderMapper;
+    private final EventSessionSeatService eventSessionSeatService;
 
     @Override
     @Transactional(readOnly = true)
@@ -54,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public Order save(Order order) {
+    public Order create(Order order) {
         return orderRepository.save(order);
     }
 
@@ -129,10 +130,14 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         for (OrderItem item : order.getOrderItems()) {
-            Seat seat = item.getSeat();
-            if (seat.getSeatStatus() == SeatStatus.RESERVED) {
-                seat.setSeatStatus(SeatStatus.AVAILABLE);
-                seatService.save(seat);
+            EventSessionSeat sessionSeat = eventSessionSeatService.findByEventSessionIdAndSeatId(
+                    item.getEventSession().getId(), 
+                    item.getSeat().getId()
+            );
+
+            if (sessionSeat.getSeatStatus() == SeatStatus.RESERVED) {
+                sessionSeat.setSeatStatus(SeatStatus.AVAILABLE);
+                eventSessionSeatService.create(sessionSeat);
             }
         }
     }

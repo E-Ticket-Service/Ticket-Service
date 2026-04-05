@@ -4,15 +4,8 @@ import abb.tech.ticket_service.dto.event.PaymentSuccessEvent;
 import abb.tech.ticket_service.enums.OrderStatus;
 import abb.tech.ticket_service.enums.SeatStatus;
 import abb.tech.ticket_service.enums.TicketStatus;
-import abb.tech.ticket_service.model.Order;
-import abb.tech.ticket_service.model.OrderItem;
-import abb.tech.ticket_service.model.Seat;
-import abb.tech.ticket_service.model.Ticket;
-import abb.tech.ticket_service.service.OrderService;
-import abb.tech.ticket_service.service.PaymentEventHandler;
-import abb.tech.ticket_service.service.PdfTicketService;
-import abb.tech.ticket_service.service.SeatService;
-import abb.tech.ticket_service.service.TicketService;
+import abb.tech.ticket_service.model.*;
+import abb.tech.ticket_service.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -33,6 +26,7 @@ public class PaymentEventHandlerImpl implements PaymentEventHandler {
     private final TicketService ticketService;
     private final SeatService seatService;
     private final PdfTicketService pdfTicketService;
+    private final EventSessionSeatService eventSessionSeatService;
 
     @Override
     @EventListener
@@ -49,19 +43,23 @@ public class PaymentEventHandlerImpl implements PaymentEventHandler {
         }
 
         order.setOrderStatus(OrderStatus.COMPLETED);
-        orderService.save(order);
+        orderService.create(order);
 
         List<Ticket> createdTickets = new ArrayList<>();
         for (OrderItem item : order.getOrderItems()) {
+            EventSession session = item.getEventSession();
             Seat seat = item.getSeat();
-            seat.setSeatStatus(SeatStatus.SOLD);
-            seatService.save(seat);
+
+            EventSessionSeat sessionSeat = eventSessionSeatService.findByEventSessionIdAndSeatId(session.getId(), seat.getId());
+            
+            sessionSeat.setSeatStatus(SeatStatus.SOLD);
+            eventSessionSeatService.create(sessionSeat);
 
             Ticket ticket = new Ticket();
             ticket.setTicketNumber(UUID.randomUUID());
             ticket.setUserId(order.getUserId());
             ticket.setOrder(order);
-            ticket.setEventSession(item.getEventSession());
+            ticket.setEventSession(session);
             ticket.setSeat(seat);
             ticket.setPrice(item.getPrice());
             ticket.setTicketStatus(TicketStatus.ACTIVE);

@@ -19,6 +19,9 @@ public abstract class BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Version
+    Long version;
+
     @CreatedDate
     LocalDateTime createdAt;
 

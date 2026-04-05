@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface OrderItemService {
     List<OrderItem> findByOrderId(Long orderId);
-    OrderItem save(OrderItem orderItem);
     OrderItem createOrderItem(Order order, OrderItemCreationRequest request);
     OrderItem createOrderItemFromBucket(Order order, BucketItem bucketItem);
 }

@@ -1,21 +1,21 @@
-package abb.tech.ticket_service.service.serviceImpl;
+package abb.tech.ticket_service.service.impl;
 
 import abb.tech.ticket_service.dto.request.ReqEventSessionDto;
 import abb.tech.ticket_service.dto.response.RespEventSessionDto;
 import abb.tech.ticket_service.exception.ResourceNotFoundException;
 import abb.tech.ticket_service.exception.SessionTimeConflictException;
 import abb.tech.ticket_service.mapper.EventSessionMapper;
-import abb.tech.ticket_service.model.Event;
-import abb.tech.ticket_service.model.EventSession;
-import abb.tech.ticket_service.model.Hall;
-import abb.tech.ticket_service.repository.EventRepository;
-import abb.tech.ticket_service.repository.EventSessionRepository;
-import abb.tech.ticket_service.repository.HallRepository;
+import abb.tech.ticket_service.model.*;
+import abb.tech.ticket_service.repository.*;
+import abb.tech.ticket_service.service.EventSessionSeatService;
 import abb.tech.ticket_service.service.EventSessionService;
+import abb.tech.ticket_service.service.SeatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,6 +25,8 @@ public class EventSessionServiceImpl implements EventSessionService {
     private final EventSessionRepository eventSessionRepository;
     private final EventRepository eventRepository;
     private final HallRepository hallRepository;
+    private final SeatService seatService;
+    private final EventSessionSeatService eventSessionSeatService;
     private final EventSessionMapper mapper;
 
     @Override
@@ -69,7 +71,23 @@ public class EventSessionServiceImpl implements EventSessionService {
         session.setBasePrice(request.basePrice());
         session.setAvailableSeats(request.availableSeats());
 
-        return mapper.toResponse(eventSessionRepository.save(session));
+        session = eventSessionRepository.save(session);
+
+        List<Seat> hallSeats = seatService.findAllByHallId(hall.getId());
+        List<EventSessionSeat> sessionSeats = new ArrayList<>();
+        
+        for (Seat seat : hallSeats) {
+            BigDecimal totalPrice = session.getBasePrice().add(seat.getExtraPrice() != null ? seat.getExtraPrice() : BigDecimal.ZERO);
+            EventSessionSeat sessionSeat = EventSessionSeat.builder()
+                    .eventSession(session)
+                    .seat(seat)
+                    .price(totalPrice)
+                    .build();
+            sessionSeats.add(sessionSeat);
+        }
+        eventSessionSeatService.createAll(sessionSeats);
+
+        return mapper.toResponse(session);
     }
 
     @Override

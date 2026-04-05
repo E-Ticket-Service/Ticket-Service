@@ -10,7 +10,7 @@ public interface OrderService {
     Order findById(Long id);
     OrderResponse getOrderById(Long id);
     List<OrderResponse> getOrdersByUserId(Long userId);
-    Order save(Order order);
+    Order create(Order order);
     OrderResponse createOrder(OrderCreationRequest request);
     OrderResponse createOrderFromBucket(Long userId);
     void cancelOrder(Long id);
