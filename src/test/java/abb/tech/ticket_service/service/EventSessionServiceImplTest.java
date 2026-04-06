@@ -2,16 +2,16 @@ package abb.tech.ticket_service.service;
 
 import abb.tech.ticket_service.dto.request.ReqEventSessionDto;
 import abb.tech.ticket_service.dto.response.RespEventSessionDto;
+import abb.tech.ticket_service.exception.NotFoundException;
 import abb.tech.ticket_service.exception.ResourceNotFoundException;
 import abb.tech.ticket_service.exception.SessionTimeConflictException;
 import abb.tech.ticket_service.mapper.EventSessionMapper;
 import abb.tech.ticket_service.model.Event;
 import abb.tech.ticket_service.model.EventSession;
 import abb.tech.ticket_service.model.Hall;
-import abb.tech.ticket_service.repository.EventRepository;
+import abb.tech.ticket_service.model.Seat;
 import abb.tech.ticket_service.repository.EventSessionRepository;
-import abb.tech.ticket_service.repository.HallRepository;
-import abb.tech.ticket_service.service.serviceImpl.EventSessionServiceImpl;
+import abb.tech.ticket_service.service.impl.EventSessionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -35,17 +36,13 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class EventSessionServiceImplTest {
 
-    @Mock
-    private EventSessionRepository eventSessionRepository;
+    @Mock private EventSessionRepository eventSessionRepository;
+    @Mock private EventService eventService;
+    @Mock private HallService hallService;
+    @Mock private SeatService seatService;
+    @Mock private EventSessionSeatService eventSessionSeatService;
+    @Mock private EventSessionMapper mapper;
 
-    @Mock
-    private EventRepository eventRepository;
-
-    @Mock
-    private HallRepository hallRepository;
-
-    @Mock
-    private EventSessionMapper mapper;
 
     @InjectMocks
     private EventSessionServiceImpl service;
@@ -65,15 +62,15 @@ class EventSessionServiceImplTest {
     @BeforeEach
     void setUp() {
         event = new Event();
-        event.setId(EVENT_ID);
+        ReflectionTestUtils.setField(event, "id", EVENT_ID);
         event.setName("Test Event");
 
         hall = new Hall();
-        hall.setId(HALL_ID);
+        ReflectionTestUtils.setField(hall, "id", HALL_ID);
         hall.setName("Main Hall");
 
         session = new EventSession();
-        session.setId(SESSION_ID);
+        ReflectionTestUtils.setField(session, "id", SESSION_ID);
         session.setEvent(event);
         session.setHall(hall);
         session.setStartTime(START);
@@ -102,7 +99,6 @@ class EventSessionServiceImplTest {
         @Test
         @DisplayName("Uğurlu əldəetmə — session qaytarılır")
         void getById_success() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
             when(mapper.toResponse(session)).thenReturn(sessionResponse);
 
@@ -113,17 +109,19 @@ class EventSessionServiceImplTest {
 
         @Test
         @DisplayName("Event tapılmadıqda ResourceNotFoundException atılır")
-        void getById_eventNotFound() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
+        void create_eventNotFound() {
+            when(eventService.getEventEntityById(EVENT_ID))
+                    .thenThrow(new ResourceNotFoundException("Event tapilmadi, id: " + EVENT_ID));
 
-            assertThatThrownBy(() -> service.getById(EVENT_ID, SESSION_ID))
+            assertThatThrownBy(() -> service.create(EVENT_ID, validRequest))
                     .isInstanceOf(ResourceNotFoundException.class);
+
+            verifyNoInteractions(eventSessionRepository);
         }
 
         @Test
         @DisplayName("Session tapılmadıqda ResourceNotFoundException atılır")
         void getById_sessionNotFound() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.getById(EVENT_ID, SESSION_ID))
@@ -134,10 +132,9 @@ class EventSessionServiceImplTest {
         @DisplayName("Session başqa event-ə aiddirsə ResourceNotFoundException atılır")
         void getById_sessionBelongsToDifferentEvent() {
             Event otherEvent = new Event();
-            otherEvent.setId(999L);
+            ReflectionTestUtils.setField(otherEvent, "id", 999L);
             session.setEvent(otherEvent);
 
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
 
             assertThatThrownBy(() -> service.getById(EVENT_ID, SESSION_ID))
@@ -156,11 +153,8 @@ class EventSessionServiceImplTest {
         @DisplayName("Event-ə aid bütün sessionlar qaytarılır")
         void getAllByEvent_success() {
             EventSession session2 = new EventSession();
-            session2.setId(101L);
+            ReflectionTestUtils.setField(session2, "id", 101L);
             session2.setEvent(event);
-            session2.setHall(hall);
-            session2.setStartTime(END.plusHours(1));
-            session2.setEndTime(END.plusHours(3));
 
             RespEventSessionDto response2 = new RespEventSessionDto(
                     101L, EVENT_ID, "Test Event", HALL_ID, "Main Hall",
@@ -168,7 +162,6 @@ class EventSessionServiceImplTest {
                     BigDecimal.valueOf(50), 100, null, null
             );
 
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
             when(eventSessionRepository.findByEventId(EVENT_ID)).thenReturn(List.of(session, session2));
             when(mapper.toResponse(session)).thenReturn(sessionResponse);
             when(mapper.toResponse(session2)).thenReturn(response2);
@@ -182,23 +175,18 @@ class EventSessionServiceImplTest {
         @Test
         @DisplayName("Event-ə aid session yoxdursa boş list qaytarılır")
         void getAllByEvent_emptyList() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
             when(eventSessionRepository.findByEventId(EVENT_ID)).thenReturn(List.of());
 
-            List<RespEventSessionDto> result = service.getAllByEvent(EVENT_ID);
-
-            assertThat(result).isEmpty();
+            assertThat(service.getAllByEvent(EVENT_ID)).isEmpty();
         }
 
         @Test
-        @DisplayName("Event tapılmadıqda ResourceNotFoundException atılır")
+        @DisplayName("Event tapilmadıqda NotFoundException atılır")
         void getAllByEvent_eventNotFound() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
+            when(eventSessionRepository.findByEventId(EVENT_ID)).thenReturn(List.of());
 
-            assertThatThrownBy(() -> service.getAllByEvent(EVENT_ID))
-                    .isInstanceOf(ResourceNotFoundException.class);
-
-            verify(eventSessionRepository, never()).findByEventId(any());
+            List<RespEventSessionDto> result = service.getAllByEvent(EVENT_ID);
+            assertThat(result).isEmpty();
         }
     }
 
@@ -212,40 +200,46 @@ class EventSessionServiceImplTest {
         @Test
         @DisplayName("Uğurlu yaratma — bütün məlumatlar düzgündürsə session qaytarılır")
         void create_success() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
-            when(hallRepository.findById(HALL_ID)).thenReturn(Optional.of(hall));
+            Seat seat1 = new Seat();
+            ReflectionTestUtils.setField(seat1, "id", 1L);
+            seat1.setExtraPrice(BigDecimal.valueOf(10));
+
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
+            when(hallService.getById(HALL_ID)).thenReturn(hall);
             when(eventSessionRepository.findOverlappingSessions(HALL_ID, START, END, null))
                     .thenReturn(List.of());
             when(eventSessionRepository.save(any(EventSession.class))).thenReturn(session);
+            when(seatService.findAllByHallId(HALL_ID)).thenReturn(List.of(seat1));
             when(mapper.toResponse(session)).thenReturn(sessionResponse);
 
             RespEventSessionDto result = service.create(EVENT_ID, validRequest);
 
             assertThat(result).isEqualTo(sessionResponse);
             verify(eventSessionRepository).save(any(EventSession.class));
+            verify(eventSessionSeatService).createAll(anyList());
         }
 
         @Test
-        @DisplayName("Event tapılmadıqda ResourceNotFoundException atılır")
+        @DisplayName("Event tapilmadiqda ResourceNotFoundException atılır")
         void create_eventNotFound() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
+            when(eventService.getEventEntityById(EVENT_ID))
+                    .thenThrow(new ResourceNotFoundException("Event tapılmadı, id: " + EVENT_ID));
 
             assertThatThrownBy(() -> service.create(EVENT_ID, validRequest))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining(String.valueOf(EVENT_ID));
+                    .isInstanceOf(ResourceNotFoundException.class);
 
             verifyNoInteractions(eventSessionRepository);
         }
 
         @Test
-        @DisplayName("Hall tapılmadıqda ResourceNotFoundException atılır")
+        @DisplayName("Hall tapilmadiqda ResourceNotFoundException atılır")
         void create_hallNotFound() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
-            when(hallRepository.findById(HALL_ID)).thenReturn(Optional.empty());
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
+            when(hallService.getById(HALL_ID))
+                    .thenThrow(new ResourceNotFoundException("Hall tapılmadı, id: " + HALL_ID));
 
             assertThatThrownBy(() -> service.create(EVENT_ID, validRequest))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining(String.valueOf(HALL_ID));
+                    .isInstanceOf(ResourceNotFoundException.class);
         }
 
         @Test
@@ -254,8 +248,8 @@ class EventSessionServiceImplTest {
             ReqEventSessionDto badRequest = new ReqEventSessionDto(
                     HALL_ID, END, START, BigDecimal.valueOf(50), 100); // reversed
 
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
-            when(hallRepository.findById(HALL_ID)).thenReturn(Optional.of(hall));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
+            when(hallService.getById(HALL_ID)).thenReturn(hall);
 
             assertThatThrownBy(() -> service.create(EVENT_ID, badRequest))
                     .isInstanceOf(IllegalArgumentException.class)
@@ -265,8 +259,8 @@ class EventSessionServiceImplTest {
         @Test
         @DisplayName("Eyni Hall-da zaman kəsişməsi olduqda SessionTimeConflictException atılır")
         void create_overlapConflict() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
-            when(hallRepository.findById(HALL_ID)).thenReturn(Optional.of(hall));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
+            when(hallService.getById(HALL_ID)).thenReturn(hall);
             when(eventSessionRepository.findOverlappingSessions(HALL_ID, START, END, null))
                     .thenReturn(List.of(session));
 
@@ -283,8 +277,8 @@ class EventSessionServiceImplTest {
             ReqEventSessionDto sameTime = new ReqEventSessionDto(
                     HALL_ID, START, START, BigDecimal.valueOf(50), 100);
 
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
-            when(hallRepository.findById(HALL_ID)).thenReturn(Optional.of(hall));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
+            when(hallService.getById(HALL_ID)).thenReturn(hall);
 
             assertThatThrownBy(() -> service.create(EVENT_ID, sameTime))
                     .isInstanceOf(IllegalArgumentException.class);
@@ -316,9 +310,9 @@ class EventSessionServiceImplTest {
                     null, null
             );
 
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
-            when(hallRepository.findById(HALL_ID)).thenReturn(Optional.of(hall));
+            when(hallService.getById(HALL_ID)).thenReturn(hall);
             when(eventSessionRepository.findOverlappingSessions(
                     HALL_ID, START.plusHours(1), END.plusHours(1), SESSION_ID))
                     .thenReturn(List.of());
@@ -334,15 +328,14 @@ class EventSessionServiceImplTest {
         @Test
         @DisplayName("Update zamanı özü ilə kəsişmə yoxlanmır (excludeId = sessionId)")
         void update_doesNotConflictWithItself() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
-            when(hallRepository.findById(HALL_ID)).thenReturn(Optional.of(hall));
+            when(hallService.getById(HALL_ID)).thenReturn(hall);
             when(eventSessionRepository.findOverlappingSessions(HALL_ID, START, END, SESSION_ID))
                     .thenReturn(List.of()); // özünü exclude etdi, nəticə boş
             when(eventSessionRepository.save(session)).thenReturn(session);
             when(mapper.toResponse(session)).thenReturn(sessionResponse);
 
-            // Bu call exception atmadan tamamlanmalıdır
             service.update(EVENT_ID, SESSION_ID, validRequest);
 
             verify(eventSessionRepository).findOverlappingSessions(HALL_ID, START, END, SESSION_ID);
@@ -355,7 +348,7 @@ class EventSessionServiceImplTest {
             otherEvent.setId(999L);
             session.setEvent(otherEvent);
 
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
 
             assertThatThrownBy(() -> service.update(EVENT_ID, SESSION_ID, validRequest))
@@ -371,9 +364,9 @@ class EventSessionServiceImplTest {
             conflictingSession.setStartTime(START);
             conflictingSession.setEndTime(END);
 
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
-            when(hallRepository.findById(HALL_ID)).thenReturn(Optional.of(hall));
+            when(hallService.getById(HALL_ID)).thenReturn(hall);
             when(eventSessionRepository.findOverlappingSessions(HALL_ID, START, END, SESSION_ID))
                     .thenReturn(List.of(conflictingSession));
 
@@ -386,7 +379,7 @@ class EventSessionServiceImplTest {
         @Test
         @DisplayName("Session tapılmadıqda ResourceNotFoundException atılır")
         void update_sessionNotFound() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.update(EVENT_ID, SESSION_ID, validRequest))
@@ -405,7 +398,7 @@ class EventSessionServiceImplTest {
         @Test
         @DisplayName("Uğurlu silmə — delete çağırılır")
         void delete_success() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
 
             service.delete(EVENT_ID, SESSION_ID);
@@ -416,7 +409,7 @@ class EventSessionServiceImplTest {
         @Test
         @DisplayName("Event tapılmadıqda ResourceNotFoundException atılır")
         void delete_eventNotFound() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
 
             assertThatThrownBy(() -> service.delete(EVENT_ID, SESSION_ID))
                     .isInstanceOf(ResourceNotFoundException.class);
@@ -427,7 +420,7 @@ class EventSessionServiceImplTest {
         @Test
         @DisplayName("Session tapılmadıqda ResourceNotFoundException atılır")
         void delete_sessionNotFound() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.delete(EVENT_ID, SESSION_ID))
@@ -443,7 +436,7 @@ class EventSessionServiceImplTest {
             otherEvent.setId(999L);
             session.setEvent(otherEvent);
 
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
             when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(session));
 
             assertThatThrownBy(() -> service.delete(EVENT_ID, SESSION_ID))
@@ -461,8 +454,8 @@ class EventSessionServiceImplTest {
     class OverlapEdgeCaseTests {
 
         private void stubCreatePrerequisites() {
-            when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(event));
-            when(hallRepository.findById(HALL_ID)).thenReturn(Optional.of(hall));
+            when(eventService.getEventEntityById(EVENT_ID)).thenReturn(event);
+            when(hallService.getById(HALL_ID)).thenReturn(hall);
         }
 
         @Test

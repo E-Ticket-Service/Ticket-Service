@@ -76,4 +76,10 @@ public class EventServiceImpl implements EventService {
         log.info("Event successfully deleted ID:" + " " + id);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Event getEventEntityById(Long id) {
+        return eventRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Event not found with ID: " + id));
+    }
 }
