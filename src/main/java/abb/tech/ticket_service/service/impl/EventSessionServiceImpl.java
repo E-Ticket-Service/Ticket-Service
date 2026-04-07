@@ -7,9 +7,7 @@ import abb.tech.ticket_service.exception.SessionTimeConflictException;
 import abb.tech.ticket_service.mapper.EventSessionMapper;
 import abb.tech.ticket_service.model.*;
 import abb.tech.ticket_service.repository.*;
-import abb.tech.ticket_service.service.EventSessionSeatService;
-import abb.tech.ticket_service.service.EventSessionService;
-import abb.tech.ticket_service.service.SeatService;
+import abb.tech.ticket_service.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +21,11 @@ import java.util.List;
 public class EventSessionServiceImpl implements EventSessionService {
 
     private final EventSessionRepository eventSessionRepository;
-    private final EventRepository eventRepository;
-    private final HallRepository hallRepository;
+    private final EventService eventService;
+    private final HallService hallService;
     private final SeatService seatService;
     private final EventSessionSeatService eventSessionSeatService;
+
     private final EventSessionMapper mapper;
 
     @Override
@@ -39,7 +38,7 @@ public class EventSessionServiceImpl implements EventSessionService {
     @Override
     @Transactional(readOnly = true)
     public RespEventSessionDto getById(Long eventId, Long sessionId) {
-        findEventOrThrow(eventId);
+        eventService.getEventById(eventId);
         EventSession session = findSessionOrThrow(sessionId, eventId);
         return mapper.toResponse(session);
     }
@@ -47,7 +46,7 @@ public class EventSessionServiceImpl implements EventSessionService {
     @Override
     @Transactional(readOnly = true)
     public List<RespEventSessionDto> getAllByEvent(Long eventId) {
-        findEventOrThrow(eventId);
+        eventService.getEventById(eventId);
         return eventSessionRepository.findByEventId(eventId)
                 .stream()
                 .map(mapper::toResponse)
@@ -57,8 +56,8 @@ public class EventSessionServiceImpl implements EventSessionService {
     @Override
     @Transactional
     public RespEventSessionDto create(Long eventId, ReqEventSessionDto request) {
-        Event event = findEventOrThrow(eventId);
-        Hall hall = findHallOrThrow(request.hallId());
+        Event event = eventService.getEventEntityById(eventId);
+        Hall hall = hallService.getById(request.hallId());
 
         validateTimeRange(request);
         checkOverlap(request.hallId(), request.startTime(), request.endTime(), null);
@@ -93,9 +92,9 @@ public class EventSessionServiceImpl implements EventSessionService {
     @Override
     @Transactional
     public RespEventSessionDto update(Long eventId, Long sessionId, ReqEventSessionDto request) {
-        findEventOrThrow(eventId);
+        eventService.getEventEntityById(eventId);
         EventSession session = findSessionOrThrow(sessionId, eventId);
-        Hall hall = findHallOrThrow(request.hallId());
+        Hall hall = hallService.getById(request.hallId());
 
         validateTimeRange(request);
         checkOverlap(request.hallId(), request.startTime(), request.endTime(), sessionId);
@@ -112,21 +111,9 @@ public class EventSessionServiceImpl implements EventSessionService {
     @Override
     @Transactional
     public void delete(Long eventId, Long sessionId) {
-        findEventOrThrow(eventId);
+        eventService.getEventEntityById(eventId);
         EventSession session = findSessionOrThrow(sessionId, eventId);
         eventSessionRepository.delete(session);
-    }
-
-    private Event findEventOrThrow(Long eventId) {
-        return eventRepository.findById(eventId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Event tapılmadı, id: " + eventId));
-    }
-
-    private Hall findHallOrThrow(Long hallId) {
-        return hallRepository.findById(hallId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Hall tapılmadı, id: " + hallId));
     }
 
     private EventSession findSessionOrThrow(Long sessionId, Long eventId) {
