@@ -6,6 +6,12 @@ spring:
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
 
   jpa:
     properties:
@@ -21,13 +27,18 @@ spring:
 
   kafka:
     bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        max.request.size: 5242880 # 5MB limit for large PDF data
-    properties:
-      spring.json.type.mapping: ticketCreatedEvent:abb.tech.ticket_service.dto.event.TicketCreatedEvent
+    consumer:
+      group-id: ticket-service-group
+      auto-offset-reset: earliest
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      reservation-key: "reservation:session:%d:seat:%d"
+      payment-idempotency-key: "payment:processed:%d"
+      reservation-ttl-minutes: 10
+      payment-idempotency-ttl-hours: 24
 
 server:
   port: 8082
