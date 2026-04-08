@@ -1,6 +1,7 @@
 package abb.tech.ticket_service.service.impl;
 
 import abb.tech.ticket_service.config.KafkaConfig;
+import static abb.tech.ticket_service.constant.KafkaConstants.TICKET_CREATED_TOPIC;
 import abb.tech.ticket_service.dto.event.TicketCreatedEvent;
 import abb.tech.ticket_service.model.Order;
 import abb.tech.ticket_service.model.Ticket;
@@ -25,6 +26,7 @@ import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.properties.VerticalAlignment;
 import com.itextpdf.layout.renderer.CellRenderer;
 import com.itextpdf.layout.renderer.DrawContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -41,7 +43,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PdfTicketServiceImpl implements PdfTicketService {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Async
@@ -67,7 +70,12 @@ public class PdfTicketServiceImpl implements PdfTicketService {
                 .status("ORDER_TICKETS_CREATED")
                 .build();
 
-        kafkaTemplate.send(KafkaConfig.TICKET_CREATED_TOPIC, order.getId().toString(), event);
+        try {
+            String jsonEvent = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send(TICKET_CREATED_TOPIC, order.getId().toString(), jsonEvent);
+        } catch (Exception e) {
+            log.error("Error serializing TicketCreatedEvent for order: {}", order.getId(), e);
+        }
         log.info("TicketCreatedEvent published to Kafka for order: {}", order.getId());
     }
 
