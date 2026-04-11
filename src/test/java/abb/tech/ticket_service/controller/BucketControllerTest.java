@@ -72,10 +72,10 @@ class BucketControllerTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // POST /api/ticket/buckets/items
+    // POST /buckets/items
     // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("POST /api/ticket/buckets/items")
+    @DisplayName("POST /buckets/items")
     class AddItemEndpoint {
 
         @Test
@@ -84,7 +84,7 @@ class BucketControllerTest {
             ReqBucketDto req = new ReqBucketDto(USER_ID, SESSION_ID, SEAT_ID, 2);
             when(bucketService.addItem(any())).thenReturn(itemResponse);
 
-            mockMvc.perform(post("/api/ticket/buckets/items")
+            mockMvc.perform(post("/buckets/items")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isCreated())
@@ -102,7 +102,7 @@ class BucketControllerTest {
                     ITEM_ID, BUCKET_ID, SESSION_ID, null, true, 1, null, null);
             when(bucketService.addItem(any())).thenReturn(noSeatResp);
 
-            mockMvc.perform(post("/api/ticket/buckets/items")
+            mockMvc.perform(post("/buckets/items")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isCreated())
@@ -116,7 +116,7 @@ class BucketControllerTest {
             when(bucketService.addItem(any()))
                     .thenThrow(new NotFoundException("EventSession tapılmadı, id: " + SESSION_ID));
 
-            mockMvc.perform(post("/api/ticket/buckets/items")
+            mockMvc.perform(post("/buckets/items")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isNotFound());
@@ -127,7 +127,7 @@ class BucketControllerTest {
         void addItem_nullUserId_returns400() throws Exception {
             ReqBucketDto req = new ReqBucketDto(null, SESSION_ID, null, 1);
 
-            mockMvc.perform(post("/api/ticket/buckets/items")
+            mockMvc.perform(post("/buckets/items")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isBadRequest());
@@ -138,7 +138,7 @@ class BucketControllerTest {
         void addItem_nullSessionId_returns400() throws Exception {
             ReqBucketDto req = new ReqBucketDto(USER_ID, null, null, 1);
 
-            mockMvc.perform(post("/api/ticket/buckets/items")
+            mockMvc.perform(post("/buckets/items")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isBadRequest());
@@ -149,7 +149,7 @@ class BucketControllerTest {
         void addItem_zeroCount_returns400() throws Exception {
             ReqBucketDto req = new ReqBucketDto(USER_ID, SESSION_ID, null, 0);
 
-            mockMvc.perform(post("/api/ticket/buckets/items")
+            mockMvc.perform(post("/buckets/items")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isBadRequest());
@@ -160,7 +160,7 @@ class BucketControllerTest {
         void addItem_nullCount_returns400() throws Exception {
             ReqBucketDto req = new ReqBucketDto(USER_ID, SESSION_ID, null, null);
 
-            mockMvc.perform(post("/api/ticket/buckets/items")
+            mockMvc.perform(post("/buckets/items")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isBadRequest());
@@ -168,10 +168,10 @@ class BucketControllerTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // DELETE /api/ticket/buckets/items/{bucketItemId}
+    // DELETE /buckets/items/{bucketItemId}
     // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("DELETE /api/ticket/buckets/items/{bucketItemId}")
+    @DisplayName("DELETE /buckets/items/{bucketItemId}")
     class RemoveItemEndpoint {
 
         @Test
@@ -179,7 +179,7 @@ class BucketControllerTest {
         void removeItem_returns204() throws Exception {
             doNothing().when(bucketService).removeItem(ITEM_ID);
 
-            mockMvc.perform(delete("/api/ticket/buckets/items/{id}", ITEM_ID))
+            mockMvc.perform(delete("/buckets/items/{id}", ITEM_ID))
                     .andExpect(status().isNoContent());
 
             verify(bucketService).removeItem(ITEM_ID);
@@ -191,13 +191,13 @@ class BucketControllerTest {
             doThrow(new NotFoundException("BucketItem tapılmadı, id: " + ITEM_ID))
                     .when(bucketService).removeItem(ITEM_ID);
 
-            mockMvc.perform(delete("/api/ticket/buckets/items/{id}", ITEM_ID))
+            mockMvc.perform(delete("/buckets/items/{id}", ITEM_ID))
                     .andExpect(status().isNotFound());
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // GET /api/ticket/buckets?userId=
+    // GET /buckets?userId=
     // ─────────────────────────────────────────────────────────────────────────────
     @Nested
     @DisplayName("GET /api/ticket/buckets")
@@ -208,7 +208,7 @@ class BucketControllerTest {
         void getBucket_returns200() throws Exception {
             when(bucketService.getBucketByUserId(USER_ID)).thenReturn(bucketResponse);
 
-            mockMvc.perform(get("/api/ticket/buckets").param("userId", String.valueOf(USER_ID)))
+            mockMvc.perform(get("/buckets").param("userId", String.valueOf(USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(BUCKET_ID))
                     .andExpect(jsonPath("$.userId").value(USER_ID))
@@ -222,7 +222,7 @@ class BucketControllerTest {
             when(bucketService.getBucketByUserId(USER_ID))
                     .thenThrow(new NotFoundException("Bu user üçün bucket tapılmadı, userId: " + USER_ID));
 
-            mockMvc.perform(get("/api/ticket/buckets").param("userId", String.valueOf(USER_ID)))
+            mockMvc.perform(get("/buckets").param("userId", String.valueOf(USER_ID)))
                     .andExpect(status().isNotFound());
         }
 
@@ -232,17 +232,17 @@ class BucketControllerTest {
             RespBucketDto emptyBucket = new RespBucketDto(BUCKET_ID, USER_ID, List.of(), null, null);
             when(bucketService.getBucketByUserId(USER_ID)).thenReturn(emptyBucket);
 
-            mockMvc.perform(get("/api/ticket/buckets").param("userId", String.valueOf(USER_ID)))
+            mockMvc.perform(get("/buckets").param("userId", String.valueOf(USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.items.length()").value(0));
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // GET /api/ticket/buckets/items?userId=
+    // GET /buckets/items?userId=
     // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("GET /api/ticket/buckets/items")
+    @DisplayName("GET /buckets/items")
     class GetItemsEndpoint {
 
         @Test
@@ -250,7 +250,7 @@ class BucketControllerTest {
         void getItems_returns200() throws Exception {
             when(bucketService.getItemsByUserId(USER_ID)).thenReturn(List.of(itemResponse));
 
-            mockMvc.perform(get("/api/ticket/buckets/items").param("userId", String.valueOf(USER_ID)))
+            mockMvc.perform(get("/buckets/items").param("userId", String.valueOf(USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(1))
                     .andExpect(jsonPath("$[0].id").value(ITEM_ID))
@@ -262,7 +262,7 @@ class BucketControllerTest {
         void getItems_emptyList_returns200() throws Exception {
             when(bucketService.getItemsByUserId(USER_ID)).thenReturn(List.of());
 
-            mockMvc.perform(get("/api/ticket/buckets/items").param("userId", String.valueOf(USER_ID)))
+            mockMvc.perform(get("/buckets/items").param("userId", String.valueOf(USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(0));
         }
@@ -273,7 +273,7 @@ class BucketControllerTest {
             when(bucketService.getItemsByUserId(USER_ID))
                     .thenThrow(new NotFoundException("Bu user üçün bucket tapılmadı, userId: " + USER_ID));
 
-            mockMvc.perform(get("/api/ticket/buckets/items").param("userId", String.valueOf(USER_ID)))
+            mockMvc.perform(get("/buckets/items").param("userId", String.valueOf(USER_ID)))
                     .andExpect(status().isNotFound());
         }
 
@@ -284,7 +284,7 @@ class BucketControllerTest {
                     41L, BUCKET_ID, SESSION_ID, null, true, 3, null, null);
             when(bucketService.getItemsByUserId(USER_ID)).thenReturn(List.of(itemResponse, resp2));
 
-            mockMvc.perform(get("/api/ticket/buckets/items").param("userId", String.valueOf(USER_ID)))
+            mockMvc.perform(get("/buckets/items").param("userId", String.valueOf(USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(2));
         }
