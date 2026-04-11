@@ -81,6 +81,11 @@ public class PdfTicketServiceImpl implements PdfTicketService {
 
     @Override
     public byte[] generateTicketPdf(Ticket ticket) {
+        if (ticket == null || ticket.getTicketNumber() == null) {
+            log.error("Ticket or TicketNumber is null, cannot generate PDF");
+            return "ERROR_GENERATING_PDF".getBytes();
+        }
+
         log.info("Generating PDF for ticket: {}", ticket.getTicketNumber());
 
         DeviceRgb headerBlue = new DeviceRgb(0, 95, 189);
@@ -107,7 +112,7 @@ public class PdfTicketServiceImpl implements PdfTicketService {
             return baos.toByteArray();
         } catch (Exception e) {
             log.error("Error generating PDF for ticket: {}", ticket.getTicketNumber(), e);
-            return ("ERROR_GENERATING_PDF").getBytes();
+            return "ERROR_GENERATING_PDF".getBytes();
         }
     }
 
