@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260412-1-create-tbl-event-attachments
+      author: nurlanaliyev
+      changes:
+        - createTable:
+            tableName: event_attachments
+            columns:
+              - column:
+                  name: event_id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: file_uuid
+                  type: UUID

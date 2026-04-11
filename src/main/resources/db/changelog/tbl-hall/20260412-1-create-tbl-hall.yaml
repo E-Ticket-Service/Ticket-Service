@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260412-1-create-tbl-hall
+      author: nurlanaliyev
+      changes:
+        - createTable:
+            tableName: halls
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: capacity
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: has_seat_map
+                  type: boolean
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: int
+
+              - addForeignKeyConstraint:
+                  baseTableName: halls
+                  baseColumnNames: location_id
+                  referencedTableName: locations
+                  referencedColumnNames: id
+                  constraintName: fk_hall_location
+                  onDelete: RESTRICT
+
+              - addForeignKeyConstraint:
+                  baseTableName: seats
+                  baseColumnNames: hall_id
+                  referencedTableName: halls
+                  referencedColumnNames: id
+                  constraintName: fk_seat_hall
+                  onDelete: CASCADE
+
+
+

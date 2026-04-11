@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260412-1-create-tbl-ticket
+      author: nurlanaliyev
+      changes:
+        - createTable:
+            tableName: tickets
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: int
+              - column:
+                  name: ticket_number
+                  type: UUID
+              - column:
+                  name: price
+                  type: decimal
+              - column:
+                  name: ticket_status
+                  type: varchar(255)
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: int
+
+              - addForeignKeyConstraint:
+                  baseTableName: tickets
+                  baseColumnNames: event_session_id
+                  referencedTableName: event_sessions
+                  referencedColumnNames: id
+                  constraintName: fk_ticket_event_session
+                  onDelete: RESTRICT
+
+              - addForeignKeyConstraint:
+                  baseTableName: tickets
+                  baseColumnNames: seat_id
+                  referencedTableName: seats
+                  referencedColumnNames: id
+                  constraintName: fk_ticket_seat
+                  onDelete: RESTRICT

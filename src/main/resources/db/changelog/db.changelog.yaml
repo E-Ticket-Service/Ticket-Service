@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - includeAll:
+      path: db/changelog/tbl-bucket
+  - includeAll:
+      path: db/changelog/tbl-bucketItem
+  - includeAll:
+      path: db/changelog/tbl-event
+  - includeAll:
+      path: db/changelog/tbl-eventSession
+  - includeAll:
+      path: db/changelog/tbl-hall
+  - includeAll:
+      path: db/changelog/tbl-location
+  - includeAll:
+      path: db/changelog/tbl-order
+  - includeAll:
+      path: db/changelog/tbl-orderItem
+  - includeAll:
+      path: db/changelog/tbl-seat
+  - includeAll:
+      path: db/changelog/tbl-ticket
+  - includeAll:
+      path: db/changelog/tbl-event-attachments

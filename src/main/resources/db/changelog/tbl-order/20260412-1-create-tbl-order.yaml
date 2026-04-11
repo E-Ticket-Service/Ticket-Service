@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260412-1-create-tbl-order
+      author: nurlanaliyev
+      changes:
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: int
+              - column:
+                  name: total_amount
+                  type: decimal
+              - column:
+                  name: order_status
+                  type: varchar(255)
+              - column:
+                  name: created_at
+                  type: datetime
+
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: int
+
+              - addForeignKeyConstraint:
+                  baseTableName: order_items
+                  baseColumnNames: order_id
+                  referencedTableName: orders
+                  referencedColumnNames: id
+                  constraintName: fk_order_items_order
+                  onDelete: CASCADE

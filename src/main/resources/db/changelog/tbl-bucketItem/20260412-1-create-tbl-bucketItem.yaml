@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260303-1-create-tbl-bucketItem
+      author: nurlanaliyev
+      changes:
+        - createTable:
+            tableName: bucket_items
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: selected
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: int
+
+              - addForeignKeyConstraint:
+                  baseTableName: bucket_items
+                  baseColumnNames: event_session_id
+                  referencedTableName: event_sessions
+                  referencedColumnNames: id
+                  constraintName: fk_bucket_items_event_session
+                  onDelete: RESTRICT
+
+              - addForeignKeyConstraint:
+                  baseTableName: bucket_items
+                  baseColumnNames: seat_id
+                  referencedTableName: seats
+                  referencedColumnNames: id
+                  constraintName: fk_bucket_items_seat
+                  onDelete: RESTRICT

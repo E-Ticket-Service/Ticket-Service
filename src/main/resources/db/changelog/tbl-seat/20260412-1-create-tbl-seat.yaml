@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260412-1-create-tbl-seat
+      author: nurlanaliyev
+      changes:
+        - createTable:
+            tableName: seats
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: sector
+                  type: varchar(255)
+
+              - column:
+                  name: row_number
+                  type: int
+              - column:
+                  name: seat_number
+                  type: int
+              - column:
+                  name: seat_type
+                  type: varchar(255)
+              - column:
+                  name: seat_status
+                  type: varchar(255)
+              - column:
+                  name: extra_price
+                  type: decimal
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: int

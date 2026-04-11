@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260412-1-create-tbl-event
+      author: nurlanaliyev
+      changes:
+        - createTable:
+            tableName: events
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+              - column:
+                  name: description
+                  type: varchar(255)
+              - column:
+                  name: age_limit
+                  type: int
+              - column:
+                  name: duration_minutes
+                  type: double
+              - column:
+                  name: language
+                  type: varchar(255)
+              - column:
+                  name: category
+                  type: varchar(255)
+              - column:
+                  name: event_status
+                  type: varchar(255)
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: int
+
+              - addForeignKeyConstraint:
+                  baseTableName: event_sessions
+                  baseColumnNames: event_id
+                  referencedTableName: events
+                  referencedColumnNames: id
+                  constraintName: fk_event_session_event
+                  onDelete: CASCADE
+

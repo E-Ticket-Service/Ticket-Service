@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: 20260412-1-create-tbl-eventSession
+      author: nurlanaliyev
+      changes:
+        - createTable:
+            tableName: event_sessions
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: start_time
+                  type: dateTime
+              - column:
+                  name: end_time
+                  type: datetime
+              - column:
+                  name: base_price
+                  type: decimal
+              - column:
+                  name: available_seats
+                  type: int
+              - column:
+                  name: created_at
+                  type: datetime
+              - column:
+                  name: updated_at
+                  type: datetime
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: int
+
+              - addForeignKeyConstraint:
+                  baseTableName: event_sessions
+                  baseColumnNames: hall_id
+                  referencedTableName: halls
+                  referencedColumnNames: id
+                  constraintName: fk_event_session_hall
+                  onDelete: RESTRICT
