@@ -15,7 +15,7 @@ public class TicketResponse {
     Long id;
     UUID ticketNumber;
     Long userId;
-    Long eventSessionId;
+    RespEventSessionDto eventSession;
     Long seatId;
     BigDecimal price;
     TicketStatus ticketStatus;
