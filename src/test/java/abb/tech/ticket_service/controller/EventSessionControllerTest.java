@@ -76,10 +76,10 @@ class EventSessionControllerTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // POST /api/ticket/events/{eventId}/sessions
+    // POST /events/{eventId}/sessions
     // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("POST /api/ticket/events/{eventId}/sessions")
+    @DisplayName("POST /events/{eventId}/sessions")
     class CreateEndpoint {
 
         @Test
@@ -87,7 +87,7 @@ class EventSessionControllerTest {
         void create_returns201() throws Exception {
             when(eventSessionService.create(eq(EVENT_ID), any())).thenReturn(sessionResponse);
 
-            mockMvc.perform(post("/api/ticket/events/{eventId}/sessions", EVENT_ID)
+            mockMvc.perform(post("/events/{eventId}/sessions", EVENT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isCreated())
@@ -102,7 +102,7 @@ class EventSessionControllerTest {
             when(eventSessionService.create(eq(EVENT_ID), any()))
                     .thenThrow(new ResourceNotFoundException("Event tapılmadı, id: " + EVENT_ID));
 
-            mockMvc.perform(post("/api/ticket/events/{eventId}/sessions", EVENT_ID)
+            mockMvc.perform(post("/events/{eventId}/sessions", EVENT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isNotFound())
@@ -115,7 +115,7 @@ class EventSessionControllerTest {
             when(eventSessionService.create(eq(EVENT_ID), any()))
                     .thenThrow(new SessionTimeConflictException("Kəsişmə mövcuddur"));
 
-            mockMvc.perform(post("/api/ticket/events/{eventId}/sessions", EVENT_ID)
+            mockMvc.perform(post("/events/{eventId}/sessions", EVENT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isConflict());
@@ -127,7 +127,7 @@ class EventSessionControllerTest {
             ReqEventSessionDto badReq = new ReqEventSessionDto(
                     null, START, END, BigDecimal.valueOf(50), 100);
 
-            mockMvc.perform(post("/api/ticket/events/{eventId}/sessions", EVENT_ID)
+            mockMvc.perform(post("/events/{eventId}/sessions", EVENT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(badReq)))
                     .andExpect(status().isBadRequest());
@@ -139,7 +139,7 @@ class EventSessionControllerTest {
             ReqEventSessionDto badReq = new ReqEventSessionDto(
                     HALL_ID, START, END, BigDecimal.valueOf(50), 0);
 
-            mockMvc.perform(post("/api/ticket/events/{eventId}/sessions", EVENT_ID)
+            mockMvc.perform(post("/events/{eventId}/sessions", EVENT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(badReq)))
                     .andExpect(status().isBadRequest());
@@ -151,7 +151,7 @@ class EventSessionControllerTest {
             ReqEventSessionDto badReq = new ReqEventSessionDto(
                     HALL_ID, START, END, BigDecimal.valueOf(-5), 100);
 
-            mockMvc.perform(post("/api/ticket/events/{eventId}/sessions", EVENT_ID)
+            mockMvc.perform(post("/events/{eventId}/sessions", EVENT_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(badReq)))
                     .andExpect(status().isBadRequest());
@@ -159,10 +159,10 @@ class EventSessionControllerTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // PUT /api/ticket/events/{eventId}/sessions/{sessionId}
+    // PUT /events/{eventId}/sessions/{sessionId}
     // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("PUT /api/ticket/events/{eventId}/sessions/{sessionId}")
+    @DisplayName("PUT /events/{eventId}/sessions/{sessionId}")
     class UpdateEndpoint {
 
         @Test
@@ -171,7 +171,7 @@ class EventSessionControllerTest {
             when(eventSessionService.update(eq(EVENT_ID), eq(SESSION_ID), any()))
                     .thenReturn(sessionResponse);
 
-            mockMvc.perform(put("/api/ticket/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID)
+            mockMvc.perform(put("/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isOk())
@@ -184,7 +184,7 @@ class EventSessionControllerTest {
             when(eventSessionService.update(eq(EVENT_ID), eq(SESSION_ID), any()))
                     .thenThrow(new ResourceNotFoundException("EventSession tapılmadı, id: " + SESSION_ID));
 
-            mockMvc.perform(put("/api/ticket/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID)
+            mockMvc.perform(put("/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isNotFound());
@@ -196,7 +196,7 @@ class EventSessionControllerTest {
             when(eventSessionService.update(eq(EVENT_ID), eq(SESSION_ID), any()))
                     .thenThrow(new SessionTimeConflictException("Kəsişmə var"));
 
-            mockMvc.perform(put("/api/ticket/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID)
+            mockMvc.perform(put("/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(validRequest)))
                     .andExpect(status().isConflict());
@@ -204,10 +204,10 @@ class EventSessionControllerTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // GET /api/ticket/events/{eventId}/sessions/{sessionId}
+    // GET /events/{eventId}/sessions/{sessionId}
     // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("GET /api/ticket/events/{eventId}/sessions/{sessionId}")
+    @DisplayName("GET /events/{eventId}/sessions/{sessionId}")
     class GetByIdEndpoint {
 
         @Test
@@ -215,7 +215,7 @@ class EventSessionControllerTest {
         void getById_returns200() throws Exception {
             when(eventSessionService.getById(EVENT_ID, SESSION_ID)).thenReturn(sessionResponse);
 
-            mockMvc.perform(get("/api/ticket/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID))
+            mockMvc.perform(get("/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(SESSION_ID))
                     .andExpect(jsonPath("$.hallName").value("Main Hall"));
@@ -227,16 +227,16 @@ class EventSessionControllerTest {
             when(eventSessionService.getById(EVENT_ID, SESSION_ID))
                     .thenThrow(new ResourceNotFoundException("EventSession tapılmadı"));
 
-            mockMvc.perform(get("/api/ticket/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID))
+            mockMvc.perform(get("/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID))
                     .andExpect(status().isNotFound());
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // GET /api/ticket/events/{eventId}/sessions
+    // GET /events/{eventId}/sessions
     // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("GET /api/ticket/events/{eventId}/sessions")
+    @DisplayName("GET /events/{eventId}/sessions")
     class GetAllEndpoint {
 
         @Test
@@ -249,7 +249,7 @@ class EventSessionControllerTest {
             );
             when(eventSessionService.getAllByEvent(EVENT_ID)).thenReturn(List.of(sessionResponse, r2));
 
-            mockMvc.perform(get("/api/ticket/events/{eventId}/sessions", EVENT_ID))
+            mockMvc.perform(get("/events/{eventId}/sessions", EVENT_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(2))
                     .andExpect(jsonPath("$[0].id").value(SESSION_ID))
@@ -261,7 +261,7 @@ class EventSessionControllerTest {
         void getAll_returnsEmptyList() throws Exception {
             when(eventSessionService.getAllByEvent(EVENT_ID)).thenReturn(List.of());
 
-            mockMvc.perform(get("/api/ticket/events/{eventId}/sessions", EVENT_ID))
+            mockMvc.perform(get("/events/{eventId}/sessions", EVENT_ID))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(0));
         }
@@ -272,16 +272,16 @@ class EventSessionControllerTest {
             when(eventSessionService.getAllByEvent(EVENT_ID))
                     .thenThrow(new ResourceNotFoundException("Event tapılmadı"));
 
-            mockMvc.perform(get("/api/ticket/events/{eventId}/sessions", EVENT_ID))
+            mockMvc.perform(get("/events/{eventId}/sessions", EVENT_ID))
                     .andExpect(status().isNotFound());
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────────
-    // DELETE /api/ticket/events/{eventId}/sessions/{sessionId}
+    // DELETE /events/{eventId}/sessions/{sessionId}
     // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("DELETE /api/ticket/events/{eventId}/sessions/{sessionId}")
+    @DisplayName("DELETE /events/{eventId}/sessions/{sessionId}")
     class DeleteEndpoint {
 
         @Test
@@ -289,7 +289,7 @@ class EventSessionControllerTest {
         void delete_returns204() throws Exception {
             doNothing().when(eventSessionService).delete(EVENT_ID, SESSION_ID);
 
-            mockMvc.perform(delete("/api/ticket/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID))
+            mockMvc.perform(delete("/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID))
                     .andExpect(status().isNoContent());
 
             verify(eventSessionService).delete(EVENT_ID, SESSION_ID);
@@ -301,7 +301,7 @@ class EventSessionControllerTest {
             doThrow(new ResourceNotFoundException("EventSession tapılmadı"))
                     .when(eventSessionService).delete(EVENT_ID, SESSION_ID);
 
-            mockMvc.perform(delete("/api/ticket/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID))
+            mockMvc.perform(delete("/events/{eventId}/sessions/{sessionId}", EVENT_ID, SESSION_ID))
                     .andExpect(status().isNotFound());
         }
     }

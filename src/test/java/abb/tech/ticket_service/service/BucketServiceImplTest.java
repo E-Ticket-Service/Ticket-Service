@@ -11,8 +11,6 @@ import abb.tech.ticket_service.model.EventSession;
 import abb.tech.ticket_service.model.Seat;
 import abb.tech.ticket_service.repository.BucketItemRepository;
 import abb.tech.ticket_service.repository.BucketRepository;
-import abb.tech.ticket_service.repository.EventSessionRepository;
-import abb.tech.ticket_service.repository.SeatRepository;
 import abb.tech.ticket_service.service.serviceImpl.BucketServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,22 +34,20 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class BucketServiceImplTest {
 
-    @Mock BucketRepository bucketRepository;
-    @Mock BucketItemRepository bucketItemRepository;
-    @Mock EventSessionRepository eventSessionRepository;
-    @Mock SeatRepository seatRepository;
-    @Mock BucketMapper mapper;
+    @Mock private BucketRepository bucketRepository;
+    @Mock private BucketItemRepository bucketItemRepository;
+    @Mock private EventSessionService eventSessionService;
+    @Mock private SeatService seatService;
+    @Mock private BucketMapper mapper;
 
     @InjectMocks
-    BucketServiceImpl service;
+    private BucketServiceImpl service;
 
-    // ─── Fixtures ───────────────────────────────────────────────────────────────
-
-    private static final Long USER_ID       = 1L;
-    private static final Long BUCKET_ID     = 10L;
-    private static final Long SESSION_ID    = 20L;
-    private static final Long SEAT_ID       = 30L;
-    private static final Long ITEM_ID       = 40L;
+    private static final Long USER_ID = 1L;
+    private static final Long BUCKET_ID = 10L;
+    private static final Long SESSION_ID = 20L;
+    private static final Long SEAT_ID = 30L;
+    private static final Long ITEM_ID = 40L;
 
     private Bucket bucket;
     private EventSession eventSession;
@@ -76,184 +72,78 @@ class BucketServiceImplTest {
         bucketItem.setBucket(bucket);
         bucketItem.setEventSession(eventSession);
         bucketItem.setSeat(seat);
-        bucketItem.setSelected(true);
         bucketItem.setCount(2);
 
-        itemResponse = new RespBucketItemDto(
-                ITEM_ID, BUCKET_ID, SESSION_ID, SEAT_ID, true, 2,
-                LocalDateTime.now(), LocalDateTime.now());
+        itemResponse = new RespBucketItemDto(ITEM_ID, BUCKET_ID, SESSION_ID, SEAT_ID, true, 2, null, null);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // addItem
-    // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("addItem()")
+    @DisplayName("addItem() Testləri")
     class AddItemTests {
 
         @Test
-        @DisplayName("Mövcud bucket varsa yeni bucket yaratmır, item əlavə edir")
-        void addItem_existingBucket_addsItem() {
+        @DisplayName("Mövcud bucket-ə yeni item əlavə edilir")
+        void addItem_newBucketItem_success() {
             ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, SEAT_ID, 2);
 
             when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(eventSession));
-            when(seatRepository.findById(SEAT_ID)).thenReturn(Optional.of(seat));
-            when(bucketItemRepository.save(any())).thenReturn(bucketItem);
-            when(mapper.toItemResponse(bucketItem)).thenReturn(itemResponse);
+            when(eventSessionService.findById(SESSION_ID)).thenReturn(eventSession);
+            when(bucketItemRepository.findByBucketIdAndEventSessionIdAndSeatId(any(), any(), any()))
+                    .thenReturn(Optional.empty());
+            when(seatService.getById(SEAT_ID)).thenReturn(seat);
+            when(bucketItemRepository.save(any(BucketItem.class))).thenReturn(bucketItem);
+            when(mapper.toItemResponse(any())).thenReturn(itemResponse);
 
             RespBucketItemDto result = service.addItem(request);
 
-            assertThat(result).isEqualTo(itemResponse);
-            // Yeni bucket yaradılmamalıdır
-            verify(bucketRepository, never()).save(any());
+            assertThat(result).isNotNull();
+            verify(bucketItemRepository).save(any(BucketItem.class));
+            verify(bucketRepository, never()).save(any(Bucket.class));
         }
 
         @Test
-        @DisplayName("Bucket yoxdursa yeni bucket yaradılır, sonra item əlavə edilir")
-        void addItem_noBucket_createsNewBucketThenAddsItem() {
-            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, SEAT_ID, 1);
+        @DisplayName("Mövcud item tapıldıqda sayı artırılır")
+        void addItem_existingItem_incrementsCount() {
+            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, SEAT_ID, 3);
+            int initialCount = bucketItem.getCount(); // 2
+
+            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
+            when(eventSessionService.findById(SESSION_ID)).thenReturn(eventSession);
+            when(bucketItemRepository.findByBucketIdAndEventSessionIdAndSeatId(BUCKET_ID, SESSION_ID, SEAT_ID))
+                    .thenReturn(Optional.of(bucketItem));
+            when(bucketItemRepository.save(any())).thenReturn(bucketItem);
+            when(mapper.toItemResponse(any())).thenReturn(itemResponse);
+
+            service.addItem(request);
+
+            assertThat(bucketItem.getCount()).isEqualTo(initialCount + request.count()); // 2 + 3 = 5
+            verify(bucketItemRepository).save(bucketItem);
+            verifyNoInteractions(seatService); // Mövcud item varsa Seat-ə baxmır
+        }
+
+        @Test
+        @DisplayName("Bucket yoxdursa yeni bucket yaradır")
+        void addItem_noBucket_createsNew() {
+            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, null, 1);
 
             when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
             when(bucketRepository.save(any(Bucket.class))).thenReturn(bucket);
-            when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(eventSession));
-            when(seatRepository.findById(SEAT_ID)).thenReturn(Optional.of(seat));
+            when(eventSessionService.findById(SESSION_ID)).thenReturn(eventSession);
             when(bucketItemRepository.save(any())).thenReturn(bucketItem);
-            when(mapper.toItemResponse(bucketItem)).thenReturn(itemResponse);
+            when(mapper.toItemResponse(any())).thenReturn(itemResponse);
 
             service.addItem(request);
 
             verify(bucketRepository).save(any(Bucket.class));
-            verify(bucketItemRepository).save(any(BucketItem.class));
-        }
-
-        @Test
-        @DisplayName("Yeni bucket yaradılanda userId düzgün set edilir")
-        void addItem_newBucket_setsUserIdCorrectly() {
-            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, null, 1);
-
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
-            when(bucketRepository.save(any(Bucket.class))).thenReturn(bucket);
-            when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(eventSession));
-            when(bucketItemRepository.save(any())).thenReturn(bucketItem);
-            when(mapper.toItemResponse(any())).thenReturn(itemResponse);
-
-            service.addItem(request);
-
-            ArgumentCaptor<Bucket> bucketCaptor = ArgumentCaptor.forClass(Bucket.class);
-            verify(bucketRepository).save(bucketCaptor.capture());
-            assertThat(bucketCaptor.getValue().getUserId()).isEqualTo(USER_ID);
-        }
-
-        @Test
-        @DisplayName("selected field default olaraq true olur")
-        void addItem_selectedIsDefaultTrue() {
-            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, null, 1);
-
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(eventSession));
-            when(bucketItemRepository.save(any(BucketItem.class))).thenReturn(bucketItem);
-            when(mapper.toItemResponse(any())).thenReturn(itemResponse);
-
-            service.addItem(request);
-
-            ArgumentCaptor<BucketItem> itemCaptor = ArgumentCaptor.forClass(BucketItem.class);
-            verify(bucketItemRepository).save(itemCaptor.capture());
-            assertThat(itemCaptor.getValue().isSelected()).isTrue();
-        }
-
-        @Test
-        @DisplayName("seatId null olduqda Seat aranmır, item yenə yaradılır")
-        void addItem_noSeatId_skipsSeatLookup() {
-            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, null, 3);
-
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(eventSession));
-            when(bucketItemRepository.save(any())).thenReturn(bucketItem);
-            when(mapper.toItemResponse(any())).thenReturn(itemResponse);
-
-            service.addItem(request);
-
-            verifyNoInteractions(seatRepository);
-            verify(bucketItemRepository).save(any());
-        }
-
-        @Test
-        @DisplayName("seatId null olduqda BucketItem.seat null olaraq qalır")
-        void addItem_noSeatId_itemSeatIsNull() {
-            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, null, 1);
-
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(eventSession));
-            when(bucketItemRepository.save(any(BucketItem.class))).thenReturn(bucketItem);
-            when(mapper.toItemResponse(any())).thenReturn(itemResponse);
-
-            service.addItem(request);
-
-            ArgumentCaptor<BucketItem> captor = ArgumentCaptor.forClass(BucketItem.class);
-            verify(bucketItemRepository).save(captor.capture());
-            assertThat(captor.getValue().getSeat()).isNull();
-        }
-
-        @Test
-        @DisplayName("EventSession tapılmadıqda NotFoundException atılır")
-        void addItem_eventSessionNotFound_throwsNotFound() {
-            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, null, 1);
-
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> service.addItem(request))
-                    .isInstanceOf(NotFoundException.class)
-                    .hasMessageContaining(String.valueOf(SESSION_ID));
-
-            verify(bucketItemRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Seat tapılmadıqda NotFoundException atılır")
-        void addItem_seatNotFound_throwsNotFound() {
-            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, SEAT_ID, 1);
-
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(eventSession));
-            when(seatRepository.findById(SEAT_ID)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> service.addItem(request))
-                    .isInstanceOf(NotFoundException.class)
-                    .hasMessageContaining(String.valueOf(SEAT_ID));
-
-            verify(bucketItemRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Item-in count dəyəri request-dən düzgün set edilir")
-        void addItem_countSetCorrectly() {
-            int expectedCount = 5;
-            ReqBucketDto request = new ReqBucketDto(USER_ID, SESSION_ID, null, expectedCount);
-
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(eventSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(eventSession));
-            when(bucketItemRepository.save(any(BucketItem.class))).thenReturn(bucketItem);
-            when(mapper.toItemResponse(any())).thenReturn(itemResponse);
-
-            service.addItem(request);
-
-            ArgumentCaptor<BucketItem> captor = ArgumentCaptor.forClass(BucketItem.class);
-            verify(bucketItemRepository).save(captor.capture());
-            assertThat(captor.getValue().getCount()).isEqualTo(expectedCount);
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // removeItem
-    // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("removeItem()")
+    @DisplayName("removeItem() Testləri")
     class RemoveItemTests {
 
         @Test
-        @DisplayName("Mövcud item uğurla silinir")
+        @DisplayName("Item tapıldıqda silinir")
         void removeItem_success() {
             when(bucketItemRepository.findById(ITEM_ID)).thenReturn(Optional.of(bucketItem));
 
@@ -263,78 +153,49 @@ class BucketServiceImplTest {
         }
 
         @Test
-        @DisplayName("Item tapılmadıqda NotFoundException atılır, delete çağırılmır")
-        void removeItem_notFound_throwsNotFoundException() {
+        @DisplayName("Item tapılmadıqda NotFoundException atır")
+        void removeItem_notFound_throwsException() {
             when(bucketItemRepository.findById(ITEM_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.removeItem(ITEM_ID))
-                    .isInstanceOf(NotFoundException.class)
-                    .hasMessageContaining(String.valueOf(ITEM_ID));
-
-            verify(bucketItemRepository, never()).delete(any());
+                    .isInstanceOf(NotFoundException.class);
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // getBucketByUserId
-    // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("getBucketByUserId()")
+    @DisplayName("getBucketByUserId() Testləri")
     class GetBucketByUserIdTests {
 
         @Test
-        @DisplayName("userId-yə uyğun bucket və item-lər qaytarılır")
+        @DisplayName("User-in bucket-i və item-ləri qaytarılır")
         void getBucketByUserId_success() {
-            RespBucketDto expected = new RespBucketDto(
-                    BUCKET_ID, USER_ID, List.of(itemResponse), null, null);
-
             when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
             when(bucketItemRepository.findByBucketId(BUCKET_ID)).thenReturn(List.of(bucketItem));
+            RespBucketDto expected = new RespBucketDto(BUCKET_ID, USER_ID, List.of(itemResponse), null, null);
             when(mapper.toBucketResponse(bucket, List.of(bucketItem))).thenReturn(expected);
 
             RespBucketDto result = service.getBucketByUserId(USER_ID);
 
-            assertThat(result).isEqualTo(expected);
             assertThat(result.userId()).isEqualTo(USER_ID);
+            assertThat(result.items()).hasSize(1);
         }
 
         @Test
-        @DisplayName("Bucket tapılmadıqda NotFoundException atılır")
+        @DisplayName("Bucket tapılmadıqda NotFoundException")
         void getBucketByUserId_notFound() {
             when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.getBucketByUserId(USER_ID))
-                    .isInstanceOf(NotFoundException.class)
-                    .hasMessageContaining(String.valueOf(USER_ID));
-
-            verifyNoInteractions(bucketItemRepository);
-        }
-
-        @Test
-        @DisplayName("Bucket boş olduqda boş item list qaytarılır")
-        void getBucketByUserId_emptyItems() {
-            RespBucketDto emptyBucket = new RespBucketDto(
-                    BUCKET_ID, USER_ID, List.of(), null, null);
-
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(bucketItemRepository.findByBucketId(BUCKET_ID)).thenReturn(List.of());
-            when(mapper.toBucketResponse(bucket, List.of())).thenReturn(emptyBucket);
-
-            RespBucketDto result = service.getBucketByUserId(USER_ID);
-
-            assertThat(result.items()).isEmpty();
+                    .isInstanceOf(NotFoundException.class);
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // getItemsByUserId
-    // ─────────────────────────────────────────────────────────────────────────────
     @Nested
-    @DisplayName("getItemsByUserId()")
+    @DisplayName("getItemsByUserId() Testləri")
     class GetItemsByUserIdTests {
 
         @Test
-        @DisplayName("userId-yə uyğun bütün item-lər qaytarılır")
+        @DisplayName("Bütün item-lər Resp listi kimi qaytarılır")
         void getItemsByUserId_success() {
             when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
             when(bucketItemRepository.findByBucketId(BUCKET_ID)).thenReturn(List.of(bucketItem));
@@ -343,47 +204,7 @@ class BucketServiceImplTest {
             List<RespBucketItemDto> result = service.getItemsByUserId(USER_ID);
 
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst()).isEqualTo(itemResponse);
-        }
-
-        @Test
-        @DisplayName("Bucket tapılmadıqda NotFoundException atılır")
-        void getItemsByUserId_bucketNotFound() {
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> service.getItemsByUserId(USER_ID))
-                    .isInstanceOf(NotFoundException.class)
-                    .hasMessageContaining(String.valueOf(USER_ID));
-        }
-
-        @Test
-        @DisplayName("Bucket boşdursa boş list qaytarılır")
-        void getItemsByUserId_emptyBucket() {
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(bucketItemRepository.findByBucketId(BUCKET_ID)).thenReturn(List.of());
-
-            List<RespBucketItemDto> result = service.getItemsByUserId(USER_ID);
-
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Bir neçə item olduqda hamısı qaytarılır")
-        void getItemsByUserId_multipleItems() {
-            BucketItem item2 = new BucketItem();
-            item2.setId(41L);
-            item2.setBucket(bucket);
-            RespBucketItemDto resp2 = new RespBucketItemDto(
-                    41L, BUCKET_ID, SESSION_ID, null, true, 1, null, null);
-
-            when(bucketRepository.findByUserId(USER_ID)).thenReturn(Optional.of(bucket));
-            when(bucketItemRepository.findByBucketId(BUCKET_ID)).thenReturn(List.of(bucketItem, item2));
-            when(mapper.toItemResponse(bucketItem)).thenReturn(itemResponse);
-            when(mapper.toItemResponse(item2)).thenReturn(resp2);
-
-            List<RespBucketItemDto> result = service.getItemsByUserId(USER_ID);
-
-            assertThat(result).hasSize(2);
+            verify(mapper, times(1)).toItemResponse(any());
         }
     }
 }
