@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface TicketMapper {
 
-    @Mapping(target = "eventSessionId", source = "eventSession.id")
+//    @Mapping(target = "eventSessionId", source = "eventSession.id")
     @Mapping(target = "seatId", source = "seat.id")
     TicketResponse toResponse(Ticket ticket);
 }

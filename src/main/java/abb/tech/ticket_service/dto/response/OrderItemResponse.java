@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderItemResponse {
     Long id;
-    Long eventSessionId;
+    RespEventSessionDto eventSession;
     Long seatId;
     BigDecimal price;
 }
