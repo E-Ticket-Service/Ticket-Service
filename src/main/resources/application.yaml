@@ -18,5 +18,8 @@ spring:
     error:
       include-message: always
       include-binding-errors: always
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog.yaml
 
 
