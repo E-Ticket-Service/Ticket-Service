@@ -50,7 +50,6 @@ public class PdfTicketServiceImpl implements PdfTicketService {
     private final UserClient userClient;
 
     @Override
-    @Async
     public void generateAndSendTickets(List<Ticket> tickets, String userEmail, Order order) {
         log.info("Generating PDFs and sending Kafka event for order: {} with {} tickets", order.getId(), tickets.size());
 

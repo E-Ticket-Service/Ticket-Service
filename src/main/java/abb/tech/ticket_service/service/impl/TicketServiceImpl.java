@@ -54,9 +54,15 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional(readOnly = true)
     public List<TicketResponse> getTicketsByOrderId(Long orderId) {
-        return ticketRepository.findByOrderId(orderId).stream()
+        return findByOrderId(orderId).stream()
                 .map(ticketMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Ticket> findByOrderId(Long orderId) {
+        return ticketRepository.findByOrderId(orderId);
     }
 
     @Override

@@ -10,6 +10,7 @@ public interface TicketService {
     TicketResponse getTicketById(Long id);
     List<TicketResponse> getTicketsByUserId(Long userId);
     List<TicketResponse> getTicketsByOrderId(Long orderId);
+    List<Ticket> findByOrderId(Long orderId);
     void cancelTicket(Long id);
     Ticket createTicket(Ticket ticket);
 //    byte[] generateTicketPdf(Long id);

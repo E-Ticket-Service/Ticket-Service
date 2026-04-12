@@ -42,7 +42,7 @@ client:
       reservation-key: "reservation:session:%d:seat:%d"
       payment-idempotency-key: "payment:processed:%d"
       reservation-ttl-minutes: 10
-      payment-idempotency-ttl-hours: 24
+      payment-idempotency-ttl-hours: 3
 
 server:
   port: 8082

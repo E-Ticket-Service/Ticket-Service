@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.Async;
 import java.util.List;
 
 public interface PdfTicketService {
-    @Async
     void generateAndSendTickets(List<Ticket> tickets, String userEmail, Order order);
     
     byte[] generateTicketPdf(Ticket ticket, Order order);

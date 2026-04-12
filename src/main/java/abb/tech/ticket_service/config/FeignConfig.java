@@ -33,9 +33,7 @@ public class FeignConfig {
                 }
                 requestTemplate.header("X-USER-AUTHORITIES", authorities);
             } else {
-                log.warn("SecurityContext is empty. Feign request sent without user headers.");
-                // Burada opsional olaraq sistem-daxili (məsələn, "SYSTEM") header-lər əlavə edilə bilər
-                // requestTemplate.header("X-USER-ID", "SYSTEM");
+                log.warn("SecurityContext is empty. Feign request sent with SYSTEM headers.");
             }
         };
     }

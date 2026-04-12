@@ -1,8 +1,10 @@
 package abb.tech.ticket_service.service.impl;
 
 import static abb.tech.ticket_service.constant.KafkaConstants.ORDER_CREATED_TOPIC;
+import static abb.tech.ticket_service.constant.KafkaConstants.REFUND_REQUEST_TOPIC;
 import abb.tech.ticket_service.client.UserClient;
 import abb.tech.ticket_service.dto.event.OrderCreatedEvent;
+import abb.tech.ticket_service.dto.event.RefundRequestEvent;
 import abb.tech.ticket_service.dto.request.OrderCreationRequest;
 import abb.tech.ticket_service.dto.request.OrderItemCreationRequest;
 import abb.tech.ticket_service.dto.response.OrderResponse;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -157,11 +160,13 @@ public class OrderServiceImpl implements OrderService {
     public void cancelOrder(Long id) {
         Order order = findById(id);
         
-        if (order.getOrderStatus() == OrderStatus.COMPLETED) {
-            throw new IllegalStateException("Cannot cancel a completed order");
-        }
-        
         if (order.getOrderStatus() == OrderStatus.CANCELLED) {
+            return;
+        }
+        validateCancellationEligibility(order);
+
+        if (order.getOrderStatus() == OrderStatus.COMPLETED) {
+            sendRefundRequest(order);
             return;
         }
 
@@ -181,6 +186,34 @@ public class OrderServiceImpl implements OrderService {
                 String lockKey = String.format(redisProperties.getReservationKey(), item.getEventSession().getId(), item.getSeat().getId());
                 redisTemplate.delete(lockKey);
             }
+        }
+    }
+
+    private void validateCancellationEligibility(Order order) {
+        LocalDateTime now = LocalDateTime.now();
+
+        if (order.getCreatedAt().plusHours(24).isBefore(now)) {
+            throw new IllegalStateException("Sifariş verildikdən sonra 24 saat keçdiyi üçün ləğv edilə bilməz.");
+        }
+
+    }
+
+    private void sendRefundRequest(Order order) {
+        if (order.getPaymentIntentId() == null) {
+            throw new IllegalStateException("Cannot refund order without payment intent ID");
+        }
+
+        RefundRequestEvent event = RefundRequestEvent.builder()
+                .paymentIntentId(order.getPaymentIntentId())
+                .amount(order.getTotalAmount())
+                .orderId(order.getId())
+                .build();
+
+        try {
+            String jsonEvent = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send(REFUND_REQUEST_TOPIC, jsonEvent);
+        } catch (Exception e) {
+            throw new RuntimeException("Error serializing RefundRequestEvent", e);
         }
     }
 }

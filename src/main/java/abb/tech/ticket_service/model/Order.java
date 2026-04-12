@@ -22,6 +22,8 @@ public class Order extends BaseEntity{
     Long userId;
 
     BigDecimal totalAmount;
+    
+    String paymentIntentId;
 
     @Enumerated(EnumType.STRING)
     OrderStatus orderStatus = OrderStatus.IN_PROGRESS;
