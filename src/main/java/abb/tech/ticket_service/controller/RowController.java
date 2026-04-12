@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,6 +18,7 @@ public class RowController {
     private final RowService rowService;
 
     @PostMapping("/{blockId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> createRow(@PathVariable Long blockId,
                                           @Valid @RequestBody RowCreationRequest request) {
         rowService.createRow(request, blockId);
@@ -24,6 +26,7 @@ public class RowController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> updateRow(@PathVariable Long id,
                                           @RequestBody RowUpdateRequest request) {
         rowService.updateRow(id, request);
@@ -31,6 +34,7 @@ public class RowController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteRow(@PathVariable Long id) {
         rowService.deleteRow(id);
         return ResponseEntity.noContent().build();

@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class HallController {
     private final HallService hallService;
 
     @PostMapping("/venue/{venueId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> createHalls(@Valid @RequestBody HallCreationRequest request,
                                             @PathVariable Long venueId) {
         hallService.createHall(request, venueId);
@@ -26,6 +28,7 @@ public class HallController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> updateHall(@PathVariable Long id,
                                            @RequestBody HallUpdateRequest request) {
         hallService.updateHall(id, request);
@@ -33,6 +36,7 @@ public class HallController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteHall(@PathVariable Long id) {
         hallService.deleteHall(id);
         return ResponseEntity.noContent().build();

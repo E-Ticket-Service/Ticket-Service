@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,41 +27,46 @@ public class OrderController {
     private final ObjectMapper objectMapper;
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderCreationRequest request) {
         return ResponseEntity.ok(orderService.createOrder(request));
     }
 
     @PostMapping("/bucket/{userId}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<OrderResponse> createOrderFromBucket(@PathVariable Long userId) {
         return ResponseEntity.ok(orderService.createOrderFromBucket(userId));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<OrderResponse> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderResponse>> getOrdersByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Void> cancelOrder(@PathVariable Long id) {
         orderService.cancelOrder(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/test/payment-success")
-    public ResponseEntity<Void> testPaymentSuccess(@RequestBody PaymentSuccessEvent event) {
-        try {
-            String jsonEvent = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(PAYMENT_SUCCESS_TOPIC, jsonEvent);
-        } catch (Exception e) {
-            throw new RuntimeException("Error serializing PaymentSuccessEvent", e);
-        }
-        return ResponseEntity.accepted().build();
-    }
+//    @PostMapping("/test/payment-success")
+//    public ResponseEntity<Void> testPaymentSuccess(@RequestBody PaymentSuccessEvent event) {
+//        try {
+//            String jsonEvent = objectMapper.writeValueAsString(event);
+//            kafkaTemplate.send(PAYMENT_SUCCESS_TOPIC, jsonEvent);
+//        } catch (Exception e) {
+//            throw new RuntimeException("Error serializing PaymentSuccessEvent", e);
+//        }
+//        return ResponseEntity.accepted().build();
+//    }
 
     @PostMapping("/test/payment-failed")
     public ResponseEntity<Void> testPaymentFailed(@RequestBody PaymentFailedEvent event) {

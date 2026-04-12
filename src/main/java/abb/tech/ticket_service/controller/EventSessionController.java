@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ public class EventSessionController {
      * Tək EventSession əldə et
      */
     @GetMapping("/{sessionId}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<RespEventSessionDto> getById(
             @PathVariable Long eventId,
             @PathVariable Long sessionId) {
@@ -34,6 +36,7 @@ public class EventSessionController {
      * Event-ə aid bütün EventSession-ları əldə et
      */
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<List<RespEventSessionDto>> getAllByEvent(
             @PathVariable Long eventId) {
 
@@ -45,6 +48,7 @@ public class EventSessionController {
      * Yeni EventSession yarat
      */
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<RespEventSessionDto> create(
             @PathVariable Long eventId,
             @Valid @RequestBody ReqEventSessionDto request) {
@@ -58,6 +62,7 @@ public class EventSessionController {
      * Mövcud EventSession-u yenilə
      */
     @PutMapping("/{sessionId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<RespEventSessionDto> update(
             @PathVariable Long eventId,
             @PathVariable Long sessionId,
@@ -71,6 +76,7 @@ public class EventSessionController {
      * EventSession-u sil
      */
     @DeleteMapping("/{sessionId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> delete(
             @PathVariable Long eventId,
             @PathVariable Long sessionId) {

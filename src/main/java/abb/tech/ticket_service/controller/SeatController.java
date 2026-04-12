@@ -4,6 +4,7 @@ import abb.tech.ticket_service.dto.request.SeatUpdateRequest;
 import abb.tech.ticket_service.service.SeatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,6 +15,7 @@ public class SeatController {
     private final SeatService seatService;
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> updateSeat(@PathVariable Long id,
                                            @RequestBody SeatUpdateRequest request) {
         seatService.updateSeat(id, request);
@@ -21,6 +23,7 @@ public class SeatController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteSeat(@PathVariable Long id) {
         seatService.deleteSeat(id);
         return ResponseEntity.noContent().build();

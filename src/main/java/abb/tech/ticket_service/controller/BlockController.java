@@ -4,6 +4,7 @@ import abb.tech.ticket_service.dto.request.BlockUpdateRequest;
 import abb.tech.ticket_service.service.BlockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,6 +14,7 @@ public class BlockController {
 
     private final BlockService blockService;
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> updateBlock(@PathVariable Long id,
                                             @RequestBody BlockUpdateRequest request) {
         blockService.updateBlock(id, request);
@@ -20,6 +22,7 @@ public class BlockController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteBlock(@PathVariable Long id) {
         blockService.deleteBlock(id);
         return ResponseEntity.noContent().build();

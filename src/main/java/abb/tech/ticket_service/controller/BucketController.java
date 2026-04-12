@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class BucketController {
      * userId-yə aid bucket və bütün item-ləri əldə et.
      */
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<RespBucketDto> getBucket(@RequestParam Long userId) {
         return ResponseEntity.ok(bucketService.getBucketByUserId(userId));
     }
@@ -33,6 +35,7 @@ public class BucketController {
      * userId-yə aid bütün BucketItem-ləri əldə et.
      */
     @GetMapping("/items")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<List<RespBucketItemDto>> getItems(@RequestParam Long userId) {
         return ResponseEntity.ok(bucketService.getItemsByUserId(userId));
     }
@@ -42,6 +45,7 @@ public class BucketController {
      * userId-yə uyğun bucket yoxdursa avtomatik yaradılır.
      */
     @PostMapping("/items")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<RespBucketItemDto> addItem(
             @Valid @RequestBody ReqBucketDto request) {
 
@@ -53,6 +57,7 @@ public class BucketController {
      * BucketItem-i sil.
      */
     @DeleteMapping("/items/{bucketItemId}")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     public ResponseEntity<Void> removeItem(@PathVariable Long bucketItemId) {
         bucketService.removeItem(bucketItemId);
         return ResponseEntity.noContent().build();
