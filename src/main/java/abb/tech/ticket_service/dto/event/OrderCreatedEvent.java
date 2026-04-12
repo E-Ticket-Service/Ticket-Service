@@ -11,7 +11,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderCreatedEvent {
-    Long orderId;
-    Long userId;
-    BigDecimal totalAmount;
+    private Long orderId;
+    private Long userId;
+    private String userEmail;
+    private BigDecimal totalAmount;
+    private String currency;
+    private String description;
+    private String paymentMethod;
 }

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "spring.data.redis")
+@ConfigurationProperties(prefix = "client.data.redis")
 public class RedisProperties {
     private String reservationKey;
     private long reservationTtlMinutes;
@@ -14,6 +14,9 @@ public class RedisProperties {
     private long paymentIdempotencyTtlHours;
 
     public String getReservationPrefix() {
+        if (reservationKey == null || !reservationKey.contains("%d")) {
+            return reservationKey;
+        }
         return reservationKey.substring(0, reservationKey.indexOf("%d"));
     }
 }

@@ -67,12 +67,12 @@ public class TicketServiceImpl implements TicketService {
         ticketRepository.save(ticket);
     }
 
-    @Override
-    @Transactional
-    public byte[] generateTicketPdf(Long id) {
-        Ticket ticket = getByIdWithDetails(id);
-        return pdfTicketService.generateTicketPdf(ticket);
-    }
+//    @Override
+//    @Transactional
+//    public byte[] generateTicketPdf(Long id) {
+//        Ticket ticket = getByIdWithDetails(id);
+//        return pdfTicketService.generateTicketPdf(ticket);
+//    }
 
     @Override
     @Transactional(readOnly = true)

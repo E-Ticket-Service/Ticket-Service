@@ -1,8 +1,10 @@
 package abb.tech.ticket_service.service.impl;
 
+import abb.tech.ticket_service.client.UserClient;
 import abb.tech.ticket_service.config.KafkaConfig;
 import static abb.tech.ticket_service.constant.KafkaConstants.TICKET_CREATED_TOPIC;
 import abb.tech.ticket_service.dto.event.TicketCreatedEvent;
+import abb.tech.ticket_service.dto.response.UserResponse;
 import abb.tech.ticket_service.model.Order;
 import abb.tech.ticket_service.model.Ticket;
 import abb.tech.ticket_service.service.PdfTicketService;
@@ -45,6 +47,7 @@ public class PdfTicketServiceImpl implements PdfTicketService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
+    private final UserClient userClient;
 
     @Override
     @Async
@@ -53,7 +56,7 @@ public class PdfTicketServiceImpl implements PdfTicketService {
 
         List<TicketCreatedEvent.TicketDetails> ticketDetailsList = tickets.stream()
                 .map(ticket -> {
-                    byte[] pdf = generateTicketPdf(ticket);
+                    byte[] pdf = generateTicketPdf(ticket, order);
                     return TicketCreatedEvent.TicketDetails.builder()
                             .ticketId(ticket.getId())
                             .ticketNumber(ticket.getTicketNumber().toString())
@@ -80,9 +83,15 @@ public class PdfTicketServiceImpl implements PdfTicketService {
     }
 
     @Override
-    public byte[] generateTicketPdf(Ticket ticket) {
+    public byte[] generateTicketPdf(Ticket ticket, Order order) {
         log.info("Generating PDF for ticket: {}", ticket.getTicketNumber());
 
+        UserResponse user;
+        try {
+            user = userClient.findById(order.getUserId());
+        } catch (Exception e) {
+            throw new RuntimeException("Could not retrieve user info for order " + order.getId() + ": " + e.getMessage(), e);
+        }
         DeviceRgb headerBlue = new DeviceRgb(0, 95, 189);
         DeviceRgb secondaryGray = new DeviceRgb(220, 220, 220);
 
@@ -100,7 +109,7 @@ public class PdfTicketServiceImpl implements PdfTicketService {
 
             mainCard.addCell(createHeader(ticket, headerBlue, secondaryGray));
             mainCard.addCell(createInfoSection(ticket, secondaryGray, pdf));
-            mainCard.addCell(createFooter(ticket, headerBlue, secondaryGray, pdf));
+            mainCard.addCell(createFooter(ticket, headerBlue, secondaryGray, pdf, user));
 
             document.add(mainCard);
             document.close();
@@ -213,7 +222,7 @@ public class PdfTicketServiceImpl implements PdfTicketService {
         return separatorCell;
     }
 
-    private Cell createFooter(Ticket ticket, DeviceRgb headerBlue, DeviceRgb secondaryGray, PdfDocument pdf) {
+    private Cell createFooter(Ticket ticket, DeviceRgb headerBlue, DeviceRgb secondaryGray, PdfDocument pdf, UserResponse user) {
         Cell footerCell = new Cell().setBackgroundColor(headerBlue).setPadding(12).setBorder(Border.NO_BORDER);
         footerCell.setNextRenderer(new CellRenderer(footerCell) {
             @Override
@@ -232,7 +241,7 @@ public class PdfTicketServiceImpl implements PdfTicketService {
         Table footerInfo = new Table(UnitValue.createPercentArray(new float[]{75, 25})).useAllAvailableWidth();
 
         Cell passengerCell = new Cell().add(new Paragraph("PASSENGER").setFontSize(7).setFontColor(secondaryGray))
-                .add(new Paragraph("REAL USER").setFontSize(10).setBold().setFontColor(DeviceRgb.WHITE))
+                .add(new Paragraph(user.getName() + " " + user.getSurname()).setFontSize(10).setBold().setFontColor(DeviceRgb.WHITE))
                 .setBorder(Border.NO_BORDER);
         footerInfo.addCell(passengerCell);
 

@@ -30,7 +30,7 @@ public class RedisKeyExpirationListener extends KeyExpirationEventMessageListene
         log.info("Redis key expired: {}", expiredKey);
 
         String prefix = redisProperties.getReservationPrefix();
-        if (expiredKey.startsWith(prefix)) {
+        if (prefix != null && expiredKey.startsWith(prefix)) {
             processReservationExpiration(expiredKey);
         }
     }

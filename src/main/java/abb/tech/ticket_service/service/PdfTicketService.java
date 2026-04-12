@@ -10,5 +10,5 @@ public interface PdfTicketService {
     @Async
     void generateAndSendTickets(List<Ticket> tickets, String userEmail, Order order);
     
-    byte[] generateTicketPdf(Ticket ticket);
+    byte[] generateTicketPdf(Ticket ticket, Order order);
 }

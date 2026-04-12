@@ -12,6 +12,6 @@ public interface TicketService {
     List<TicketResponse> getTicketsByOrderId(Long orderId);
     void cancelTicket(Long id);
     Ticket createTicket(Ticket ticket);
-    byte[] generateTicketPdf(Long id);
+//    byte[] generateTicketPdf(Long id);
     Ticket getByIdWithDetails(Long id);
 }

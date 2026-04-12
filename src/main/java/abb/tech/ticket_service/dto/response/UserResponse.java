@@ -1,17 +1,22 @@
 package abb.tech.ticket_service.dto.response;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import java.math.BigDecimal;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OrderItemResponse {
+public class UserResponse {
     Long id;
-    RespEventSessionDto eventSession;
-    Long seatId;
-    BigDecimal price;
+    String name;
+    String surname;
+    String lastname;
+    String phoneNumber;
+    String email;
 }

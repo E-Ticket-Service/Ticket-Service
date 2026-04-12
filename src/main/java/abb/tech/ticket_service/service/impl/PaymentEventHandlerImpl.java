@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.kafka.annotation.BackOff;
+//import org.springframework.kafka.annotation.BackOff;
 import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
@@ -49,8 +49,8 @@ public class PaymentEventHandlerImpl implements PaymentEventHandler {
     @RetryableTopic(
             attempts = "3",
             topicSuffixingStrategy = TopicSuffixingStrategy.SUFFIX_WITH_INDEX_VALUE,
-            dltStrategy = DltStrategy.ALWAYS_RETRY_ON_ERROR,
-            backOff = @BackOff(delay = 2000L, multiplier = 2.0)
+            dltStrategy = DltStrategy.ALWAYS_RETRY_ON_ERROR
+//            backOff = @BackOff(delay = 2000L, multiplier = 2.0)
     )
     @KafkaListener(topics = PAYMENT_SUCCESS_TOPIC, groupId = "${spring.kafka.consumer.group-id:" + TICKET_SERVICE_GROUP + "}")
     public void handlePaymentSuccess(String message) {
@@ -119,8 +119,8 @@ public class PaymentEventHandlerImpl implements PaymentEventHandler {
     @RetryableTopic(
             attempts = "3",
             topicSuffixingStrategy = TopicSuffixingStrategy.SUFFIX_WITH_INDEX_VALUE,
-            dltStrategy = DltStrategy.ALWAYS_RETRY_ON_ERROR,
-            backOff = @BackOff(delay = 2000L, multiplier = 2.0)
+            dltStrategy = DltStrategy.ALWAYS_RETRY_ON_ERROR
+//            backOff = @BackOff(delay = 2000L, multiplier = 2.0)
     )
     @KafkaListener(topics = PAYMENT_FAILED_TOPIC, groupId = "${spring.kafka.consumer.group-id:" + TICKET_SERVICE_GROUP + "}")
     public void handlePaymentFailed(String message) {

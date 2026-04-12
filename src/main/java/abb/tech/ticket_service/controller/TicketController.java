@@ -3,6 +3,8 @@ package abb.tech.ticket_service.controller;
 import abb.tech.ticket_service.dto.response.TicketResponse;
 import abb.tech.ticket_service.service.TicketService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,15 +12,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/tickets")
 @RequiredArgsConstructor
 public class TicketController {
 
+    @Value("${server.port}")
+    private String port;
+
     private final TicketService ticketService;
 
     @GetMapping("/{id}")
     public ResponseEntity<TicketResponse> getTicketById(@PathVariable Long id) {
+        log.info("Server port: " + port);
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
@@ -38,13 +45,13 @@ public class TicketController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<byte[]> generateTicketPdf(@PathVariable Long id) {
-        byte[] pdf = ticketService.generateTicketPdf(id);
-        
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ticket_" + id + ".pdf\"")
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf);
-    }
+//    @GetMapping(value = "/{id}/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+//    public ResponseEntity<byte[]> generateTicketPdf(@PathVariable Long id) {
+//        byte[] pdf = ticketService.generateTicketPdf(id);
+//
+//        return ResponseEntity.ok()
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"ticket_" + id + ".pdf\"")
+//                .contentType(MediaType.APPLICATION_PDF)
+//                .body(pdf);
+//    }
 }

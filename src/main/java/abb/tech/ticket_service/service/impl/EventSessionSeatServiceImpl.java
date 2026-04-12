@@ -18,7 +18,7 @@ public class EventSessionSeatServiceImpl implements EventSessionSeatService {
     @Override
     public EventSessionSeat findByEventSessionIdAndSeatId(Long eventSessionId, Long seatId) {
         return eventSessionSeatRepository.findByEventSessionIdAndSeatId(eventSessionId, seatId)
-                .orElseThrow(() -> new IllegalStateException("Seat not found for this session"));
+                .orElseThrow(() -> new IllegalStateException("Seat: %d not found for this session: %d".formatted(seatId, eventSessionId) ));
     }
 
     @Override
