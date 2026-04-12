@@ -67,16 +67,6 @@ public class PaymentEventHandlerImpl implements PaymentEventHandler {
             return;
         }
 
-        // Set SecurityContext for FeignClient and other services
-        if (event.getUserId() != null) {
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    event.getUserId().toString(),
-                    event.getUserEmail(),
-                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-            );
-            SecurityContextHolder.getContext().setAuthentication(auth);
-        }
-
         try {
             log.info("Processing payment success event for order: {}", event.getOrderId());
             String idempotencyKey = String.format(redisProperties.getPaymentIdempotencyKey(), event.getOrderId());
