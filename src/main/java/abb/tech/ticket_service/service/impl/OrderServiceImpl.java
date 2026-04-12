@@ -1,14 +1,11 @@
 package abb.tech.ticket_service.service.impl;
 
-import static abb.tech.ticket_service.constant.KafkaConstants.ORDER_CREATED_TOPIC;
 import static abb.tech.ticket_service.constant.KafkaConstants.REFUND_REQUEST_TOPIC;
 import abb.tech.ticket_service.client.UserClient;
-import abb.tech.ticket_service.dto.event.OrderCreatedEvent;
 import abb.tech.ticket_service.dto.event.RefundRequestEvent;
 import abb.tech.ticket_service.dto.request.OrderCreationRequest;
 import abb.tech.ticket_service.dto.request.OrderItemCreationRequest;
 import abb.tech.ticket_service.dto.response.OrderResponse;
-import abb.tech.ticket_service.dto.response.UserResponse;
 import abb.tech.ticket_service.enums.OrderStatus;
 import abb.tech.ticket_service.enums.SeatStatus;
 import abb.tech.ticket_service.exception.NotFoundException;
@@ -42,7 +39,6 @@ public class OrderServiceImpl implements OrderService {
     private final abb.tech.ticket_service.config.RedisProperties redisProperties;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
-    private final UserClient userClient;
 
     @Override
     @Transactional(readOnly = true)
@@ -92,8 +88,6 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(orderItems);
         order = orderRepository.save(order);
 
-        sendOrderCreatedEvent(order);
-
         return orderMapper.toResponse(order);
     }
 
@@ -126,34 +120,9 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(orderItems);
         order = orderRepository.save(order);
 
-        sendOrderCreatedEvent(order);
-
         return orderMapper.toResponse(order);
     }
 
-    private void sendOrderCreatedEvent(Order order) {
-        UserResponse user;
-        try {
-            user = userClient.findById(order.getUserId());
-        } catch (Exception e) {
-            throw new RuntimeException("Could not retrieve user info for order " + order.getId() + ": " + e.getMessage(), e);
-        }
-
-        OrderCreatedEvent event = OrderCreatedEvent.builder()
-                .orderId(order.getId())
-                .userId(order.getUserId())
-                .userEmail(user.getEmail())
-                .totalAmount(order.getTotalAmount())
-                .currency("azn")
-                .paymentMethod("card")
-                .build();
-        try {
-            String jsonEvent = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(ORDER_CREATED_TOPIC, jsonEvent);
-        } catch (Exception e) {
-            throw new RuntimeException("Error serializing OrderCreatedEvent", e);
-        }
-    }
 
     @Override
     @Transactional

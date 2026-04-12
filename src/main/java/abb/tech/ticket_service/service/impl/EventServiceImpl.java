@@ -1,4 +1,4 @@
-package abb.tech.ticket_service.service.serviceImpl;
+package abb.tech.ticket_service.service.impl;
 
 import abb.tech.ticket_service.dto.request.ReqEventDto;
 import abb.tech.ticket_service.dto.response.RespEventDto;

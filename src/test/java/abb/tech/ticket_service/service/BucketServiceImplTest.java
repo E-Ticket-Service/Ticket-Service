@@ -13,7 +13,7 @@ package abb.tech.ticket_service.service;
 //import abb.tech.ticket_service.repository.BucketRepository;
 //import abb.tech.ticket_service.repository.EventSessionRepository;
 //import abb.tech.ticket_service.repository.SeatRepository;
-//import abb.tech.ticket_service.service.serviceImpl.BucketServiceImpl;
+//import abb.tech.ticket_service.service.impl.BucketServiceImpl;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.DisplayName;
 //import org.junit.jupiter.api.Nested;
